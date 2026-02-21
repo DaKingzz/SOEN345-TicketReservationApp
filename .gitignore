@@ -1,0 +1,29 @@
+## ── Android / Gradle ──────────────────────────────────────────────────────
+*.iml
+.gradle/
+local.properties
+.DS_Store
+build/
+/captures
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+
+## ── Firebase ──────────────────────────────────────────────────────────────
+# NEVER commit this file – store its content as a GitHub Secret instead.
+app/google-services.json
+
+## ── Android Studio / IntelliJ ─────────────────────────────────────────────
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+## ── Keystore / signing ────────────────────────────────────────────────────
+*.jks
+*.keystore
+keystore.properties

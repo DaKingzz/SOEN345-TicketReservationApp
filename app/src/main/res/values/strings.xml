@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Ticket Reservation</string>
+
+    <!-- Splash -->
+    <string name="splash_tagline">Browse · Reserve · Enjoy</string>
+
+    <!-- Login -->
+    <string name="login_subtitle">Welcome back! Sign in to continue.</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="no_account">Don\'t have an account? </string>
+
+    <!-- Register -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Sign up to start booking tickets.</string>
+    <string name="have_account">Already have an account? </string>
+    <string name="otp_instruction">Enter the 6-digit code sent to your phone.</string>
+
+    <!-- Hints -->
+    <string name="hint_email">Email address</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_confirm_password">Confirm password</string>
+    <string name="hint_full_name">Full name</string>
+    <string name="hint_phone">Phone number (+1XXXXXXXXXX)</string>
+    <string name="hint_otp">6-digit OTP</string>
+
+    <!-- Buttons -->
+    <string name="btn_login">Login</string>
+    <string name="btn_register">Register</string>
+    <string name="btn_send_otp">Send OTP</string>
+    <string name="btn_verify_register">Verify &amp; Register</string>
+
+    <!-- Main -->
+    <string name="welcome_greeting">Welcome, %1$s!</string>
+    <string name="home_placeholder">Events list coming soon.\nUse the menu to log out.</string>
+    <string name="action_logout">Logout</string>
+</resources>
