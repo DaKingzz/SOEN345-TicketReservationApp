@@ -28,6 +28,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
@@ -37,11 +43,9 @@ dependencies {
     implementation 'androidx.activity:activity:1.9.0'
 
     // Firebase BoM - manages all Firebase library versions
-    implementation platform('com.google.firebase:firebase-bom:34.9.0')
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
-
-    implementation 'com.google.firebase:firebase-analytics'
 
     // Unit tests (JUnit 5)
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
@@ -53,7 +57,3 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
 
-// Enable JUnit 5 for local unit tests
-tasks.withType(Test) {
-    useJUnitPlatform()
-}
