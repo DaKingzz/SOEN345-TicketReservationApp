@@ -11,7 +11,7 @@
 
         <!-- Splash / entry point: checks auth state and routes accordingly -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".activity.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.TicketReservation.Splash">
             <intent-filter>
@@ -31,7 +31,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activity.CreateEventActivity"
             android:exported="false" />
 
     </application>

@@ -1,6 +1,7 @@
 package com.soen345.ticketreservation.auth;
 
 import android.app.Activity;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -47,6 +48,37 @@ public class AuthManager {
     public void logout() {
         auth.signOut();
     }
+    public void checkAdminStatus(OnAdminResult callback) {
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (firebaseUser == null) {
+            callback.onResult(false);
+            return;
+        }
+
+        db.collection("users").document(firebaseUser.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String role = documentSnapshot.getString("role");
+
+                        boolean isAdmin = "admin".equalsIgnoreCase(role);
+                        callback.onResult(isAdmin);
+                    } else {
+                        Log.e("Security", "User document does not exist in Firestore");
+                        callback.onResult(false);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Security", "Failed to fetch user role", e);
+                    callback.onResult(false);
+                });
+    }
+
+    public interface OnAdminResult {
+        void onResult(boolean isAdmin);
+    }
+
 
     public void loginWithEmail(String email, String password, AuthCallback callback) {
         auth.signInWithEmailAndPassword(email, password)
