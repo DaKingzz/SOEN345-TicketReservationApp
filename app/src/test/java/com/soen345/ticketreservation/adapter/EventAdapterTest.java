@@ -1,17 +1,23 @@
 package com.soen345.ticketreservation.adapter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.OnEventInteractionListener;
 
@@ -20,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -60,6 +67,7 @@ class EventAdapterTest {
         
         adapter = spy(new EventAdapter(eventList, listener));
 
+        // Setup the mock holder fields for onBindViewHolder tests
         holder.deleteBtn = deleteBtn;
         holder.editBtn = editBtn;
         holder.tvEventName = tvEventName;
@@ -127,6 +135,57 @@ class EventAdapterTest {
         assertEquals(true, adapter.isAdmin);
         adapter.setAdmin(false);
         assertEquals(false, adapter.isAdmin);
+    }
+
+    @Test
+    void eventViewHolder_constructor_initializesViews() {
+        View view = mock(View.class);
+        when(view.findViewById(R.id.buttonDeleteEvent)).thenReturn(deleteBtn);
+        when(view.findViewById(R.id.buttonEditEvent)).thenReturn(editBtn);
+        when(view.findViewById(R.id.tvEventName)).thenReturn(tvEventName);
+        when(view.findViewById(R.id.tvEventCategory)).thenReturn(tvEventCategory);
+        when(view.findViewById(R.id.tvEventLocation)).thenReturn(tvEventLocation);
+        when(view.findViewById(R.id.tvEventDateTime)).thenReturn(tvEventDateTime);
+        when(view.findViewById(R.id.tvEventSeats)).thenReturn(tvEventSeats);
+
+        EventAdapter.EventViewHolder viewHolder = new EventAdapter.EventViewHolder(view);
+
+        assertEquals(deleteBtn, viewHolder.deleteBtn);
+        assertEquals(editBtn, viewHolder.editBtn);
+        assertEquals(tvEventName, viewHolder.tvEventName);
+        assertEquals(tvEventCategory, viewHolder.tvEventCategory);
+        assertEquals(tvEventLocation, viewHolder.tvEventLocation);
+        assertEquals(tvEventDateTime, viewHolder.tvEventDateTime);
+        assertEquals(tvEventSeats, viewHolder.tvEventSeats);
+    }
+
+    @Test
+    void onCreateViewHolder_inflatesLayoutAndReturnsViewHolder() {
+        ViewGroup parent = mock(ViewGroup.class);
+        android.content.Context context = mock(android.content.Context.class);
+        LayoutInflater inflater = mock(LayoutInflater.class);
+        View view = mock(View.class);
+
+        when(parent.getContext()).thenReturn(context);
+        
+        // Stub findViewById to return the correctly typed mocks to avoid ClassCastException
+        when(view.findViewById(R.id.buttonDeleteEvent)).thenReturn(deleteBtn);
+        when(view.findViewById(R.id.buttonEditEvent)).thenReturn(editBtn);
+        when(view.findViewById(R.id.tvEventName)).thenReturn(tvEventName);
+        when(view.findViewById(R.id.tvEventCategory)).thenReturn(tvEventCategory);
+        when(view.findViewById(R.id.tvEventLocation)).thenReturn(tvEventLocation);
+        when(view.findViewById(R.id.tvEventDateTime)).thenReturn(tvEventDateTime);
+        when(view.findViewById(R.id.tvEventSeats)).thenReturn(tvEventSeats);
+
+        try (MockedStatic<LayoutInflater> mockedInflater = mockStatic(LayoutInflater.class)) {
+            mockedInflater.when(() -> LayoutInflater.from(context)).thenReturn(inflater);
+            when(inflater.inflate(eq(R.layout.item_event), eq(parent), eq(false))).thenReturn(view);
+
+            EventAdapter.EventViewHolder result = adapter.onCreateViewHolder(parent, 0);
+
+            assertNotNull(result);
+            verify(inflater).inflate(R.layout.item_event, parent, false);
+        }
     }
 
     private String anyString() {
