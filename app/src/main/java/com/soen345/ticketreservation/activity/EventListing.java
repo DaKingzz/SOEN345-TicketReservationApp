@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +21,7 @@ import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.event.EventManager;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.EventCategory;
+import com.soen345.ticketreservation.model.OnEventDeleteListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +72,21 @@ public class EventListing extends BaseActivity {
     }
 
     private void setupRecyclerView() {
-        eventAdapter = new EventAdapter(filteredEvents);
+        eventAdapter = new EventAdapter(filteredEvents, new OnEventDeleteListener() {
+            @Override
+            public void onDeleteClick(Event event, int position) {
+                String eventId = event.getEventId();
+
+                authManager.getDb().collection("events").document(eventId)
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }
+        });
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
         rvEvents.setAdapter(eventAdapter);
     }
@@ -167,4 +183,6 @@ public class EventListing extends BaseActivity {
             }
         });
     }
+
+
 }

@@ -25,9 +25,12 @@ public class AuthManager {
     private final FirebaseAuth      auth;
     private final FirebaseFirestore db;
 
+    private boolean isAdmin;
+
     private AuthManager() {
         auth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
+        isAdmin=false;
     }
 
     public static synchronized AuthManager getInstance() {
@@ -40,6 +43,8 @@ public class AuthManager {
     public FirebaseUser getCurrentUser() {
         return auth.getCurrentUser();
     }
+
+    public FirebaseFirestore getDb(){return db;}
 
     public boolean isLoggedIn() {
         return auth.getCurrentUser() != null;

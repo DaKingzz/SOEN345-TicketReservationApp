@@ -21,11 +21,10 @@
             android:id="@+id/tvEventName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textColor="@color/primary"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:textColor="@color/primary"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Montreal Jazz Festival" />
 
@@ -46,11 +45,12 @@
             android:id="@+id/tvEventLocation"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textSize="14sp"
+            android:layout_marginTop="4dp"
             android:textColor="@color/text_primary"
-            app:layout_constraintStart_toStartOf="parent"
+            android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvEventCategory"
             tools:text="Place des Arts, Montreal" />
 
@@ -59,43 +59,43 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="14sp"
             android:textColor="@color/text_secondary"
-            app:layout_constraintStart_toStartOf="parent"
+            android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvEventLocation"
             tools:text="Oct 25, 2023 • 7:00 PM" />
-
-        <View
-            android:id="@+id/divider"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:background="#EEEEEE"
-            app:layout_constraintTop_toBottomOf="@id/tvEventDateTime" />
 
         <TextView
             android:id="@+id/tvEventSeats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:textColor="@color/error"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:textColor="@color/error"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider"
             tools:text="150 seats remaining" />
 
-        <TextView
+        <Button
+            android:id="@+id/buttonDeleteEvent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="View Details ›"
-            android:textColor="@color/primary"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@id/tvEventSeats"
+            android:text="Delete"
+            app:backgroundTint="@color/error"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvEventSeats" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/buttonEditEvent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Edit"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonDeleteEvent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

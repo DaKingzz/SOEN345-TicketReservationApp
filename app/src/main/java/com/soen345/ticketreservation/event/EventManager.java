@@ -1,6 +1,7 @@
 package com.soen345.ticketreservation.event;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -8,6 +9,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.soen345.ticketreservation.activity.EventListing;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.model.Event;
 
