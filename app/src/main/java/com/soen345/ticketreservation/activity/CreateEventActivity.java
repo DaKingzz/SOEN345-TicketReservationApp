@@ -34,7 +34,7 @@ public class CreateEventActivity extends AppCompatActivity {
         createTimeListener();
     }
 
-    public void createEventListener() {
+    private void createEventListener() {
         Button btnCreateEvent = findViewById(R.id.btnCreateEvent);
 
         btnCreateEvent.setOnClickListener(v -> {
@@ -77,7 +77,7 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    public void initCategoryDropdown(){
+    private void initCategoryDropdown(){
         EventCategory[] categories = EventCategory.values();
         String[] categoryStrings = new String[categories.length];
 
@@ -94,7 +94,7 @@ public class CreateEventActivity extends AppCompatActivity {
         etCategory.setAdapter(adapter);
     }
 
-    public void createDateListener() {
+    private void createDateListener() {
         EditText etEventDateTime = findViewById(R.id.etEventDate);
 
         etEventDateTime.setOnClickListener(v -> {
@@ -110,7 +110,7 @@ public class CreateEventActivity extends AppCompatActivity {
             });
         });
     }
-    public void createTimeListener(){
+    private void createTimeListener(){
         EditText etEventTime = findViewById(R.id.etEventTime);
 
         etEventTime.setOnClickListener(v -> {

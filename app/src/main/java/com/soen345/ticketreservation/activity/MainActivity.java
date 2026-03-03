@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-    public void initGoToCreateEventListener() {
+    private void initGoToCreateEventListener() {
         Button btnGoCreateEvent = findViewById(R.id.btnGoToCreateEvent);
         btnGoCreateEvent.setVisibility(View.GONE);
 
