@@ -1,11 +1,16 @@
 package com.soen345.ticketreservation.activity;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +28,12 @@ import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.EventCategory;
 import com.soen345.ticketreservation.model.OnEventInteractionListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class EventListing extends BaseActivity {
@@ -38,6 +47,12 @@ public class EventListing extends BaseActivity {
     private List<Event> filteredEvents = new ArrayList<>();
     private ListenerRegistration eventListener;
     private ChipGroup chipGroupFilters;
+    
+    private EditText etLocationFilter;
+    private Button btnDateFilter;
+    private ImageButton btnClearDate;
+    private Calendar selectedCalendar = null;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +65,14 @@ public class EventListing extends BaseActivity {
         welcomeText = findViewById(R.id.welcome_text);
         rvEvents = findViewById(R.id.rvEvents);
         chipGroupFilters = findViewById(R.id.chipGroupFilters);
+        etLocationFilter = findViewById(R.id.etLocationFilter);
+        btnDateFilter = findViewById(R.id.btnDateFilter);
+        btnClearDate = findViewById(R.id.btnClearDate);
 
         setupRecyclerView();
         setupFilterChips();
+        setupLocationFilter();
+        setupDateFilter();
         loadUserGreeting();
         initAdminUI();
     }
@@ -99,6 +119,41 @@ public class EventListing extends BaseActivity {
         });
     }
 
+    private void setupLocationFilter() {
+        etLocationFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterEvents();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void setupDateFilter() {
+        btnDateFilter.setOnClickListener(v -> {
+            Calendar calendar = selectedCalendar != null ? selectedCalendar : Calendar.getInstance();
+            new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+                selectedCalendar = Calendar.getInstance();
+                selectedCalendar.set(year, month, dayOfMonth);
+                btnDateFilter.setText(dateFormat.format(selectedCalendar.getTime()));
+                btnClearDate.setVisibility(View.VISIBLE);
+                filterEvents();
+            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        btnClearDate.setOnClickListener(v -> {
+            selectedCalendar = null;
+            btnDateFilter.setText("Date");
+            btnClearDate.setVisibility(View.GONE);
+            filterEvents();
+        });
+    }
+
     private void filterEvents() {
         int checkedId = chipGroupFilters.getCheckedChipId();
         String selectedCategory = "";
@@ -113,15 +168,33 @@ public class EventListing extends BaseActivity {
             selectedCategory = EventCategory.TRAVEL.toString();
         }
 
+        String locationQuery = etLocationFilter.getText().toString().toLowerCase().trim();
+        String finalSelectedCategory = selectedCategory;
+
         filteredEvents.clear();
-        if (selectedCategory.isEmpty()) {
-            filteredEvents.addAll(allEvents);
-        } else {
-            String finalSelectedCategory = selectedCategory;
-            filteredEvents.addAll(allEvents.stream()
-                    .filter(e -> e.getCategory() != null && e.getCategory().equalsIgnoreCase(finalSelectedCategory))
-                    .collect(Collectors.toList()));
-        }
+        filteredEvents.addAll(allEvents.stream()
+                .filter(e -> {
+                    // Category Filter
+                    boolean categoryMatch = finalSelectedCategory.isEmpty() || 
+                            (e.getCategory() != null && e.getCategory().equalsIgnoreCase(finalSelectedCategory));
+                    
+                    // Location Filter
+                    boolean locationMatch = locationQuery.isEmpty() || 
+                            (e.getLocation() != null && e.getLocation().toLowerCase().contains(locationQuery));
+                    
+                    // Date Filter
+                    boolean dateMatch = true;
+                    if (selectedCalendar != null && e.getDateTime() != null) {
+                        Calendar eventCal = Calendar.getInstance();
+                        eventCal.setTime(e.getDateTime());
+                        dateMatch = eventCal.get(Calendar.YEAR) == selectedCalendar.get(Calendar.YEAR) &&
+                                eventCal.get(Calendar.DAY_OF_YEAR) == selectedCalendar.get(Calendar.DAY_OF_YEAR);
+                    }
+                    
+                    return categoryMatch && locationMatch && dateMatch;
+                })
+                .collect(Collectors.toList()));
+
         eventAdapter.notifyDataSetChanged();
     }
 
