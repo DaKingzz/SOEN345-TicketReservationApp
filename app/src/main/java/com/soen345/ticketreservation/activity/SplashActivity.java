@@ -26,7 +26,7 @@ public class SplashActivity extends AppCompatActivity {
 
     private void routeUser() {
         Class<?> destination = AuthManager.getInstance().isLoggedIn()
-                ? EventListing.class
+                ? EventListingActivity.class
                 : LoginActivity.class;
 
         startActivity(new Intent(this, destination));

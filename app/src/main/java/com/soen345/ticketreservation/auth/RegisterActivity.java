@@ -17,7 +17,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.soen345.ticketreservation.activity.EventListing;
+import com.soen345.ticketreservation.activity.EventListingActivity;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.util.InputValidator;
 
@@ -317,7 +317,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void navigateToMain() {
-        Intent intent = new Intent(this, EventListing.class);
+        Intent intent = new Intent(this, EventListingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

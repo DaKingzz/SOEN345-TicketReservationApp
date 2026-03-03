@@ -42,8 +42,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                if (!(this instanceof EventListing)) {
-                    startActivity(new Intent(this, EventListing.class));
+                if (!(this instanceof EventListingActivity)) {
+                    startActivity(new Intent(this, EventListingActivity.class));
                     finish();
                 }
                 return true;

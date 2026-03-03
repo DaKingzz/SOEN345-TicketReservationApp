@@ -31,12 +31,11 @@ import com.soen345.ticketreservation.model.OnEventInteractionListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class EventListing extends BaseActivity {
+public class EventListingActivity extends BaseActivity {
 
     private TextView welcomeText;
     private AuthManager authManager;
@@ -97,14 +96,14 @@ public class EventListing extends BaseActivity {
             public void onDeleteClick(Event event, int position) {
                 eventManager.deleteEvent(
                         event.getEventId(),
-                        () -> Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show(),
-                        e -> Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                        () -> Toast.makeText(EventListingActivity.this, "Event Deleted", Toast.LENGTH_SHORT).show(),
+                        e -> Toast.makeText(EventListingActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                 );
             }
 
             @Override
             public void onEditClick(Event event, int position) {
-                Intent intent = new Intent(EventListing.this, CreateEventActivity.class);
+                Intent intent = new Intent(EventListingActivity.this, CreateEventActivity.class);
                 intent.putExtra("EVENT_TO_EDIT", event);
                 startActivity(intent);
             }
@@ -254,7 +253,7 @@ public class EventListing extends BaseActivity {
             if (isAdmin) {
                 btnGoCreateEvent.setVisibility(View.VISIBLE);
                 btnGoCreateEvent.setOnClickListener(v -> {
-                    Intent intent = new Intent(EventListing.this, CreateEventActivity.class);
+                    Intent intent = new Intent(EventListingActivity.this, CreateEventActivity.class);
                     startActivity(intent);
                 });
             }
