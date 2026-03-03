@@ -8,15 +8,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
 import com.google.firebase.auth.FirebaseUser;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.auth.AuthManager;
-import com.soen345.ticketreservation.auth.LoginActivity;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private TextView    welcomeText;
     private AuthManager authManager;
@@ -27,9 +23,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         authManager = AuthManager.getInstance();
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         welcomeText = findViewById(R.id.welcome_text);
 
@@ -72,13 +65,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void logout() {
-        authManager.logout();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
-    }
     public void initGoToCreateEventListener() {
         Button btnGoCreateEvent = findViewById(R.id.btnGoToCreateEvent);
         btnGoCreateEvent.setVisibility(View.GONE);
@@ -93,6 +79,4 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
 }
