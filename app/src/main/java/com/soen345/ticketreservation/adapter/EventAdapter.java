@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.model.Event;
-import com.soen345.ticketreservation.model.OnEventDeleteListener;
+import com.soen345.ticketreservation.model.OnEventInteractionListener;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -18,13 +18,13 @@ import java.util.Locale;
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
     private List<Event> eventList;
-    private OnEventDeleteListener deleteListener;
+    private OnEventInteractionListener listener;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
 
-    public EventAdapter(List<Event> eventList, OnEventDeleteListener listener) {
+    public EventAdapter(List<Event> eventList, OnEventInteractionListener listener) {
         this.eventList = eventList;
-        this.deleteListener=listener;
+        this.listener = listener;
     }
 
     @NonNull
@@ -39,7 +39,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         Event event = eventList.get(position);
 
         holder.deleteBtn.setOnClickListener(v -> {
-            deleteListener.onDeleteClick(event, position);
+            listener.onDeleteClick(event, position);
+        });
+
+        holder.editBtn.setOnClickListener(v -> {
+            listener.onEditClick(event, position);
         });
 
         holder.tvEventName.setText(event.getName());
@@ -58,12 +62,12 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView tvEventName, tvEventCategory, tvEventLocation, tvEventDateTime, tvEventSeats;
-        Button deleteBtn,editBtn;
+        Button deleteBtn, editBtn;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
-            deleteBtn=itemView.findViewById(R.id.buttonDeleteEvent);
-            editBtn=itemView.findViewById(R.id.buttonEditEvent);
+            deleteBtn = itemView.findViewById(R.id.buttonDeleteEvent);
+            editBtn = itemView.findViewById(R.id.buttonEditEvent);
             tvEventName = itemView.findViewById(R.id.tvEventName);
             tvEventCategory = itemView.findViewById(R.id.tvEventCategory);
             tvEventLocation = itemView.findViewById(R.id.tvEventLocation);

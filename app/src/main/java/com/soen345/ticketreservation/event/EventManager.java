@@ -64,6 +64,34 @@ public class EventManager {
         });
     }
 
+    public void updateEvent(Event event, Runnable onSuccess, Consumer<Exception> onFailure) {
+        if (!authManager.isLoggedIn()) {
+            if (onFailure != null) onFailure.accept(new IllegalStateException("User is not logged in"));
+            return;
+        }
+
+        authManager.checkAdminStatus(isAdmin -> {
+            if (isAdmin) {
+                if (event.getEventId() == null || event.getEventId().isEmpty()) {
+                    if (onFailure != null) onFailure.accept(new IllegalArgumentException("Event ID is missing"));
+                    return;
+                }
+
+                db.collection(EVENTS_COLLECTION).document(event.getEventId())
+                        .set(event)
+                        .addOnSuccessListener(aVoid -> {
+                            if (onSuccess != null) onSuccess.run();
+                        })
+                        .addOnFailureListener(e -> {
+                            if (onFailure != null) onFailure.accept(e);
+                        });
+            } else {
+                if (onFailure != null)
+                    onFailure.accept(new Exception("Security: Admin status required for update"));
+            }
+        });
+    }
+
     public void deleteEvent(String eventId, Runnable onSuccess, Consumer<Exception> onFailure) {
         if (!authManager.isLoggedIn()) {
             if (onFailure != null) onFailure.accept(new IllegalStateException("User is not logged in"));

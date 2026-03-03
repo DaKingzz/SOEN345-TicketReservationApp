@@ -21,7 +21,7 @@ import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.event.EventManager;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.EventCategory;
-import com.soen345.ticketreservation.model.OnEventDeleteListener;
+import com.soen345.ticketreservation.model.OnEventInteractionListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,12 +72,22 @@ public class EventListing extends BaseActivity {
     }
 
     private void setupRecyclerView() {
-        eventAdapter = new EventAdapter(filteredEvents, (event, position) -> {
-            eventManager.deleteEvent(
-                    event.getEventId(),
-                    () -> Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show(),
-                    e -> Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-            );
+        eventAdapter = new EventAdapter(filteredEvents, new OnEventInteractionListener() {
+            @Override
+            public void onDeleteClick(Event event, int position) {
+                eventManager.deleteEvent(
+                        event.getEventId(),
+                        () -> Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show(),
+                        e -> Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+            }
+
+            @Override
+            public void onEditClick(Event event, int position) {
+                Intent intent = new Intent(EventListing.this, CreateEventActivity.class);
+                intent.putExtra("EVENT_TO_EDIT", event);
+                startActivity(intent);
+            }
         });
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
         rvEvents.setAdapter(eventAdapter);
