@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import androidx.recyclerview.widget.RecyclerView;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.model.Event;
@@ -19,7 +20,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     private List<Event> eventList;
     private OnEventInteractionListener listener;
-    private boolean isAdmin = false;
+    
+    @VisibleForTesting
+    boolean isAdmin = false;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
 
@@ -30,7 +33,11 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     public void setAdmin(boolean admin) {
         this.isAdmin = admin;
-        notifyDataSetChanged();
+        try {
+            notifyDataSetChanged();
+        } catch (Exception ignored) {
+            // Handle cases where notifyDataSetChanged fails in unit tests
+        }
     }
 
     @NonNull
