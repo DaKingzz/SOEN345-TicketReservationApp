@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.adapter.EventAdapter;
 import com.soen345.ticketreservation.auth.AuthManager;
@@ -29,6 +30,7 @@ public class EventListing extends BaseActivity {
     private RecyclerView rvEvents;
     private EventAdapter eventAdapter;
     private List<Event> eventList = new ArrayList<>();
+    private ListenerRegistration eventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +46,20 @@ public class EventListing extends BaseActivity {
         setupRecyclerView();
         loadUserGreeting();
         initGoToCreateEventListener();
-        loadEvents();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        startListeningForEvents();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (eventListener != null) {
+            eventListener.remove();
+        }
     }
 
     private void setupRecyclerView() {
@@ -53,8 +68,11 @@ public class EventListing extends BaseActivity {
         rvEvents.setAdapter(eventAdapter);
     }
 
-    private void loadEvents() {
-        eventManager.getEvents(events -> {
+    private void startListeningForEvents() {
+        if (eventListener != null) {
+            eventListener.remove();
+        }
+        eventListener = eventManager.listenToEvents(events -> {
             eventList.clear();
             eventList.addAll(events);
             eventAdapter.notifyDataSetChanged();

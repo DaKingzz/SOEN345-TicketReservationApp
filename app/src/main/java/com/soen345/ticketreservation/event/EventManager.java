@@ -6,6 +6,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.model.Event;
@@ -77,6 +78,25 @@ public class EventManager {
                 .addOnFailureListener(e -> {
                     Log.e("Firestore", "Error getting events", e);
                     callback.accept(new ArrayList<>());
+                });
+    }
+
+    public ListenerRegistration listenToEvents(Consumer<List<Event>> callback) {
+        return db.collection(EVENTS_COLLECTION)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error);
+                        return;
+                    }
+
+                    List<Event> events = new ArrayList<>();
+                    if (value != null) {
+                        for (QueryDocumentSnapshot document : value) {
+                            Event event = document.toObject(Event.class);
+                            events.add(event);
+                        }
+                    }
+                    callback.accept(events);
                 });
     }
 }
