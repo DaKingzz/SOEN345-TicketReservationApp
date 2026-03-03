@@ -1,7 +1,6 @@
 package com.soen345.ticketreservation.event;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -9,7 +8,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.soen345.ticketreservation.activity.EventListing;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.model.Event;
 
@@ -62,6 +60,29 @@ public class EventManager {
                         });
             } else {
                 Log.e("Security", "User is not an admin");
+            }
+        });
+    }
+
+    public void deleteEvent(String eventId, Runnable onSuccess, Consumer<Exception> onFailure) {
+        if (!authManager.isLoggedIn()) {
+            if (onFailure != null) onFailure.accept(new IllegalStateException("User is not logged in"));
+            return;
+        }
+
+        authManager.checkAdminStatus(isAdmin -> {
+            if (isAdmin) {
+                db.collection(EVENTS_COLLECTION).document(eventId)
+                        .delete()
+                        .addOnSuccessListener(aVoid -> {
+                            if (onSuccess != null) onSuccess.run();
+                        })
+                        .addOnFailureListener(e -> {
+                            if (onFailure != null) onFailure.accept(e);
+                        });
+            } else {
+                if (onFailure != null)
+                    onFailure.accept(new Exception("Security: Admin status required for deletion"));
             }
         });
     }

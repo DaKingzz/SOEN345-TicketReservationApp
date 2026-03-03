@@ -72,20 +72,12 @@ public class EventListing extends BaseActivity {
     }
 
     private void setupRecyclerView() {
-        eventAdapter = new EventAdapter(filteredEvents, new OnEventDeleteListener() {
-            @Override
-            public void onDeleteClick(Event event, int position) {
-                String eventId = event.getEventId();
-
-                authManager.getDb().collection("events").document(eventId)
-                        .delete()
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
-            }
+        eventAdapter = new EventAdapter(filteredEvents, (event, position) -> {
+            eventManager.deleteEvent(
+                    event.getEventId(),
+                    () -> Toast.makeText(EventListing.this, "Event Deleted", Toast.LENGTH_SHORT).show(),
+                    e -> Toast.makeText(EventListing.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+            );
         });
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
         rvEvents.setAdapter(eventAdapter);
