@@ -2,6 +2,8 @@ package com.soen345.ticketreservation.event;
 
 import android.util.Log;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.soen345.ticketreservation.auth.AuthManager;
@@ -12,12 +14,16 @@ public class EventManager {
 
     private static EventManager instance;
     private final FirebaseFirestore db;
-
     private final AuthManager authManager;
 
     private EventManager() {
-        db = FirebaseFirestore.getInstance();
-        authManager = AuthManager.getInstance();
+        this(FirebaseFirestore.getInstance(), AuthManager.getInstance());
+    }
+
+    @VisibleForTesting
+    EventManager(FirebaseFirestore db, AuthManager authManager) {
+        this.db = db;
+        this.authManager = authManager;
     }
 
     public static synchronized EventManager getInstance() {
