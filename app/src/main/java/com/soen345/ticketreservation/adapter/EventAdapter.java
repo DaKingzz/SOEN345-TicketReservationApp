@@ -19,12 +19,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     private List<Event> eventList;
     private OnEventInteractionListener listener;
+    private boolean isAdmin = false;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault());
 
     public EventAdapter(List<Event> eventList, OnEventInteractionListener listener) {
         this.eventList = eventList;
         this.listener = listener;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.isAdmin = admin;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -38,13 +44,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public void onBindViewHolder(@NonNull EventViewHolder holder, int position) {
         Event event = eventList.get(position);
 
-        holder.deleteBtn.setOnClickListener(v -> {
-            listener.onDeleteClick(event, position);
-        });
-
-        holder.editBtn.setOnClickListener(v -> {
-            listener.onEditClick(event, position);
-        });
+        if (isAdmin) {
+            holder.deleteBtn.setVisibility(View.VISIBLE);
+            holder.editBtn.setVisibility(View.VISIBLE);
+            holder.deleteBtn.setOnClickListener(v -> listener.onDeleteClick(event, position));
+            holder.editBtn.setOnClickListener(v -> listener.onEditClick(event, position));
+        } else {
+            holder.deleteBtn.setVisibility(View.GONE);
+            holder.editBtn.setVisibility(View.GONE);
+        }
 
         holder.tvEventName.setText(event.getName());
         holder.tvEventCategory.setText(event.getCategory());

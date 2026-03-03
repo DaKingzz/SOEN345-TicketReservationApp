@@ -54,7 +54,7 @@ public class EventListing extends BaseActivity {
         setupRecyclerView();
         setupFilterChips();
         loadUserGreeting();
-        initGoToCreateEventListener();
+        initAdminUI();
     }
 
     @Override
@@ -171,11 +171,13 @@ public class EventListing extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void initGoToCreateEventListener() {
+    public void initAdminUI() {
         Button btnGoCreateEvent = findViewById(R.id.btnGoToCreateEvent);
         btnGoCreateEvent.setVisibility(View.GONE);
 
         authManager.checkAdminStatus(isAdmin -> {
+            eventAdapter.setAdmin(isAdmin);
+
             if (isAdmin) {
                 btnGoCreateEvent.setVisibility(View.VISIBLE);
                 btnGoCreateEvent.setOnClickListener(v -> {
