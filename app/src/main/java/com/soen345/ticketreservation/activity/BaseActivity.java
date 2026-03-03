@@ -2,7 +2,6 @@ package com.soen345.ticketreservation.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -43,8 +42,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                if (!(this instanceof MainActivity)) {
-                    startActivity(new Intent(this, MainActivity.class));
+                if (!(this instanceof EventListing)) {
+                    startActivity(new Intent(this, EventListing.class));
                     finish();
                 }
                 return true;

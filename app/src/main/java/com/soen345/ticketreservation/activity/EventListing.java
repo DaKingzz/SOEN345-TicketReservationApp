@@ -8,26 +8,57 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.auth.FirebaseUser;
 import com.soen345.ticketreservation.R;
+import com.soen345.ticketreservation.adapter.EventAdapter;
 import com.soen345.ticketreservation.auth.AuthManager;
+import com.soen345.ticketreservation.event.EventManager;
+import com.soen345.ticketreservation.model.Event;
 
-public class MainActivity extends BaseActivity {
+import java.util.ArrayList;
+import java.util.List;
 
-    private TextView    welcomeText;
+public class EventListing extends BaseActivity {
+
+    private TextView welcomeText;
     private AuthManager authManager;
+    private EventManager eventManager;
+    private RecyclerView rvEvents;
+    private EventAdapter eventAdapter;
+    private List<Event> eventList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_event_listing);
 
         authManager = AuthManager.getInstance();
+        eventManager = EventManager.getInstance();
 
         welcomeText = findViewById(R.id.welcome_text);
+        rvEvents = findViewById(R.id.rvEvents);
 
+        setupRecyclerView();
         loadUserGreeting();
         initGoToCreateEventListener();
+        loadEvents();
+    }
+
+    private void setupRecyclerView() {
+        eventAdapter = new EventAdapter(eventList);
+        rvEvents.setLayoutManager(new LinearLayoutManager(this));
+        rvEvents.setAdapter(eventAdapter);
+    }
+
+    private void loadEvents() {
+        eventManager.getEvents(events -> {
+            eventList.clear();
+            eventList.addAll(events);
+            eventAdapter.notifyDataSetChanged();
+        });
     }
 
     private void loadUserGreeting() {
@@ -73,7 +104,7 @@ public class MainActivity extends BaseActivity {
             if (isAdmin) {
                 btnGoCreateEvent.setVisibility(View.VISIBLE);
                 btnGoCreateEvent.setOnClickListener(v -> {
-                    Intent intent = new Intent(MainActivity.this, CreateEventActivity.class);
+                    Intent intent = new Intent(EventListing.this, CreateEventActivity.class);
                     startActivity(intent);
                 });
             }

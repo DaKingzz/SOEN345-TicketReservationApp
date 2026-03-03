@@ -31,7 +31,7 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".activity.EventListing"
             android:exported="false" />
 
         <activity
