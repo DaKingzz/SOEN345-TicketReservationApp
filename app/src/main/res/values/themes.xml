@@ -10,6 +10,7 @@
         <item name="colorAccent">@color/primary</item>
         <item name="colorError">@color/error</item>
         <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <!-- Splash uses a solid primary background with no action bar -->
