@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- White ticket body (rounded rectangle) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,40 L78,40 Q84,40 84,46 L84,62 Q84,68 78,68 L30,68 Q24,68 24,62 L24,46 Q24,40 30,40 Z" />
+
+    <!-- Left notch: orange circle centred on the left edge — blends with background
+         outside the ticket, appears as a cutout inside -->
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M24,48 A6,6 0 1,0 24,60 A6,6 0 1,0 24,48 Z" />
+
+    <!-- Right notch -->
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M84,48 A6,6 0 1,0 84,60 A6,6 0 1,0 84,48 Z" />
+
+    <!-- Stub divider (vertical orange band) -->
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M38,40 L43,40 L43,68 L38,68 Z" />
+
+    <!-- Three horizontal lines in the main ticket area (simulating printed text) -->
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M49,47 L77,47 L77,51 L49,51 Z
+                          M49,54 L77,54 L77,58 L49,58 Z
+                          M49,61 L71,61 L71,65 L49,65 Z" />
+
+</vector>
