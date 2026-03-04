@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.timepicker.MaterialTimePicker;
 import com.google.android.material.timepicker.TimeFormat;
@@ -93,9 +95,9 @@ public class CreateEventActivity extends BaseActivity {
                     eventToEdit.setDateTime(dateObject);
                     eventToEdit.setTotalCapacity(capacity);
                     // Update available seats if needed, or leave logic to business rules
-                    eventToEdit.setAvailableSeats(capacity); 
+                    eventToEdit.setAvailableSeats(capacity);
 
-                    EventManager.getInstance().updateEvent(eventToEdit, 
+                    EventManager.getInstance().updateEvent(eventToEdit,
                         () -> {
                             Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
                             finish();
@@ -126,7 +128,7 @@ public class CreateEventActivity extends BaseActivity {
         });
     }
 
-    public void initCategoryDropdown() {
+    private void initCategoryDropdown(){
         EventCategory[] categories = EventCategory.values();
         String[] categoryStrings = new String[categories.length];
 
@@ -143,7 +145,7 @@ public class CreateEventActivity extends BaseActivity {
         etCategory.setAdapter(adapter);
     }
 
-    public void createDateListener() {
+    private void createDateListener() {
         EditText etEventDate = findViewById(R.id.etEventDate);
 
         etEventDate.setOnClickListener(v -> {
@@ -160,7 +162,7 @@ public class CreateEventActivity extends BaseActivity {
         });
     }
 
-    public void createTimeListener() {
+    private void createTimeListener() {
         EditText etEventTime = findViewById(R.id.etEventTime);
 
         etEventTime.setOnClickListener(v -> {
@@ -179,4 +181,5 @@ public class CreateEventActivity extends BaseActivity {
             });
         });
     }
+
 }
