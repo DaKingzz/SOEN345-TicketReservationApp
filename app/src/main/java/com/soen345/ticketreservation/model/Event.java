@@ -1,11 +1,12 @@
 package com.soen345.ticketreservation.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * Represents an event in the Ticket Reservation Application.
  */
-public class Event {
+public class Event implements Serializable {
     private String eventId;
     private String name;
     private String category;
@@ -43,7 +44,10 @@ public class Event {
     public void setLocation(String location) { this.location = location; }
 
     public int getAvailableSeats() { return availableSeats; }
+    public void setAvailableSeats(int availableSeats) { this.availableSeats = availableSeats; }
+    
     public int getTotalCapacity() {return totalCapacity; }
+    public void setTotalCapacity(int totalCapacity) { this.totalCapacity = totalCapacity; }
 
 
 }
