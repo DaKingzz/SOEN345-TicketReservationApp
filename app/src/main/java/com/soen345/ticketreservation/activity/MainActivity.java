@@ -1,15 +1,18 @@
-package com.soen345.ticketreservation;
+package com.soen345.ticketreservation.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseUser;
+import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.auth.LoginActivity;
 
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         welcomeText = findViewById(R.id.welcome_text);
 
         loadUserGreeting();
+        initGoToCreateEventListener();
     }
 
     private void loadUserGreeting() {
@@ -75,4 +79,20 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+    private void initGoToCreateEventListener() {
+        Button btnGoCreateEvent = findViewById(R.id.btnGoToCreateEvent);
+        btnGoCreateEvent.setVisibility(View.GONE);
+
+        authManager.checkAdminStatus(isAdmin -> {
+            if (isAdmin) {
+                btnGoCreateEvent.setVisibility(View.VISIBLE);
+                btnGoCreateEvent.setOnClickListener(v -> {
+                    Intent intent = new Intent(MainActivity.this, CreateEventActivity.class);
+                    startActivity(intent);
+                });
+            }
+        });
+    }
+
+
 }

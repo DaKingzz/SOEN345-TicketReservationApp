@@ -13,7 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-import com.soen345.ticketreservation.MainActivity;
+import com.soen345.ticketreservation.activity.MainActivity;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.util.InputValidator;
 

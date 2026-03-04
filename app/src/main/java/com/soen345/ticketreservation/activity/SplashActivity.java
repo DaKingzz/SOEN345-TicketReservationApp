@@ -1,4 +1,4 @@
-package com.soen345.ticketreservation;
+package com.soen345.ticketreservation.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +7,7 @@ import android.os.Looper;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.auth.LoginActivity;
 
