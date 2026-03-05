@@ -25,6 +25,7 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/buttonDeleteEvent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Montreal Jazz Festival" />
 
@@ -70,13 +71,13 @@
             android:id="@+id/tvEventSeats"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:textColor="@color/error"
             android:textSize="13sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvEventDateTime"
+            app:layout_constraintBottom_toBottomOf="parent"
             tools:text="150 seats remaining" />
 
         <Button
@@ -95,7 +96,7 @@
             android:layout_marginTop="4dp"
             android:text="Edit"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonDeleteEvent" />
+            app:layout_constraintTop_toBottomOf="@id/buttonDeleteEvent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
