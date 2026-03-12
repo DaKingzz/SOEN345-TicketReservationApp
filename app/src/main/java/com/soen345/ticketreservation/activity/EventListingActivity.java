@@ -290,7 +290,15 @@ public class EventListingActivity extends BaseActivity {
                 reservation.setQuantity(value);
                 reservation.setUserId(authManager.getCurrentUser().getUid());
                 reservation.setEventDate(event.getDateTime());
-                confirmReservation(reservation, event);
+                if (hasEnoughAvailableSeats(event, value)) {
+                    confirmReservation(reservation, event);
+                } else {
+                    AlertDialog alertDialog = new AlertDialog.Builder(EventListingActivity.this).create();
+                    alertDialog.setTitle("Booking Failed: Not Enough Seats");
+                    alertDialog.setMessage("Sorry, there are not enough seats available for this event");
+                    alertDialog.show();
+                }
+
             }
         });
 
@@ -330,5 +338,9 @@ public class EventListingActivity extends BaseActivity {
         return "Event: " + event.getName() + "\n" +
                 "Date: " + dateFormat.format(event.getDateTime()) + "\n" +
                 "Quantity: " + reservation.getQuantity();
+    }
+
+    public boolean hasEnoughAvailableSeats(Event event, int quantity) {
+        return event.getAvailableSeats() >= quantity;
     }
 }
