@@ -1,10 +1,14 @@
 package com.soen345.ticketreservation.activity;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,9 +28,11 @@ import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.adapter.EventAdapter;
 import com.soen345.ticketreservation.auth.AuthManager;
 import com.soen345.ticketreservation.event.EventManager;
+import com.soen345.ticketreservation.event.ReservationManager;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.EventCategory;
 import com.soen345.ticketreservation.model.OnEventInteractionListener;
+import com.soen345.ticketreservation.model.Reservation;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,6 +46,7 @@ public class EventListingActivity extends BaseActivity {
     private TextView welcomeText;
     private AuthManager authManager;
     private EventManager eventManager;
+    private ReservationManager reservationManager;
     private RecyclerView rvEvents;
     private EventAdapter eventAdapter;
     private List<Event> allEvents = new ArrayList<>();
@@ -60,6 +67,7 @@ public class EventListingActivity extends BaseActivity {
 
         authManager = AuthManager.getInstance();
         eventManager = EventManager.getInstance();
+        reservationManager = ReservationManager.getInstance();
 
         welcomeText = findViewById(R.id.welcome_text);
         rvEvents = findViewById(R.id.rvEvents);
@@ -106,6 +114,11 @@ public class EventListingActivity extends BaseActivity {
                 Intent intent = new Intent(EventListingActivity.this, CreateEventActivity.class);
                 intent.putExtra("EVENT_TO_EDIT", event);
                 startActivity(intent);
+            }
+
+            @Override
+            public void onBookClick(Event event, int position) {
+                setReservationQuantity(event);
             }
         });
         rvEvents.setLayoutManager(new LinearLayoutManager(this));
@@ -260,5 +273,62 @@ public class EventListingActivity extends BaseActivity {
         });
     }
 
+    private void setReservationQuantity(Event event) {
+        Log.d("EventListingActivity", "onBookClick called with position: " + event.getName());
+        AlertDialog.Builder builder = new AlertDialog.Builder(EventListingActivity.this);
+        builder.setTitle("How many tickets do you want to book?");
+        builder.setMessage("Input amount of tickets");
+        final EditText input = new EditText(EventListingActivity.this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        builder.setView(input);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                int value = Integer.parseInt(input.getText().toString());
+                Log.d("EventListingActivity", "onBookClick called with value: " + value);
+                Reservation reservation = new Reservation();
+                reservation.setEventId(event.getEventId());
+                reservation.setQuantity(value);
+                reservation.setUserId(authManager.getCurrentUser().getUid());
+                reservation.setEventDate(event.getDateTime());
+                confirmReservation(reservation, event);
+            }
+        });
 
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.cancel();
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    private void confirmReservation(Reservation reservation, Event event) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(EventListingActivity.this);
+        builder.setTitle("Confirm Reservation");
+        builder.setMessage("Reservation Summary");
+        final TextView tvReservationSummary = new TextView(EventListingActivity.this);
+        tvReservationSummary.setText(getReservationPreview(reservation, event));
+        builder.setView(tvReservationSummary);
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Log.d("EventListingActivity", "onBookClick called with value: " + reservation.getQuantity());
+                        reservationManager.createReservation(reservation, event, EventListingActivity.this);
+                    }
+                });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    private String getReservationPreview(Reservation reservation, Event event) {
+        return "Event: " + event.getName() + "\n" +
+                "Date: " + dateFormat.format(event.getDateTime()) + "\n" +
+                "Quantity: " + reservation.getQuantity();
+    }
 }
