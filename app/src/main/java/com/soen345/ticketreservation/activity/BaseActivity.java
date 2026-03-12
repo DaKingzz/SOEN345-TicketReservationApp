@@ -49,6 +49,10 @@ public abstract class BaseActivity extends AppCompatActivity {
                 return true;
             } else if (itemId == R.id.nav_my_tickets) {
                 // TODO: Navigate to My Tickets Activity
+                if (!(this instanceof ReservationListingActivity)) {
+                    startActivity(new Intent(this, ReservationListingActivity.class));
+                    finish();
+                }
                 return true;
             } else if (itemId == R.id.nav_profile) {
                 // TODO: Navigate to Profile Activity
