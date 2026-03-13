@@ -34,16 +34,18 @@ public class ReservationManager {
     private final FirebaseFirestore db;
     private final AuthManager authManager;
     private final EventManager eventManager;
+    private final EmailManager emailManager;
 
     private ReservationManager() {
-        this(FirebaseFirestore.getInstance(), AuthManager.getInstance(), EventManager.getInstance());
+        this(FirebaseFirestore.getInstance(), AuthManager.getInstance(), EventManager.getInstance(), EmailManager.getInstance());
     }
 
     @VisibleForTesting
-    ReservationManager(FirebaseFirestore db, AuthManager authManager, EventManager eventManager) {
+    ReservationManager(FirebaseFirestore db, AuthManager authManager, EventManager eventManager, EmailManager emailManager) {
         this.db = db;
         this.authManager = authManager;
         this.eventManager = eventManager;
+        this.emailManager = emailManager;
     }
 
     public static synchronized ReservationManager getInstance() {
@@ -69,6 +71,7 @@ public class ReservationManager {
                     Log.d("Firestore", "Reservation saved with internal ID: " + generatedId);
                     event.setAvailableSeats(event.getAvailableSeats() - reservation.getQuantity());
                     eventManager.updateEventAvailability(event, () -> {
+                        emailManager.sendConfirmation(authManager.getCurrentUser().getEmail(), event.getName(), reservation.getQuantity());
                         // Handle success
                         Log.d("Firestore", "Event updated with internal ID: " + event.getEventId());
                         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
