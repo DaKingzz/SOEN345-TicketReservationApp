@@ -150,4 +150,27 @@ public class EventManager {
                     callback.accept(events);
                 });
     }
+
+    public void updateEventAvailability(Event event, Runnable onSuccess, Consumer<Exception> onFailure) {
+        if (!authManager.isLoggedIn()) {
+            if (onFailure != null) onFailure.accept(new IllegalStateException("User is not logged in"));
+            return;
+        }
+
+        authManager.checkAdminStatus(isAdmin -> {
+                if (event.getEventId() == null || event.getEventId().isEmpty()) {
+                    if (onFailure != null) onFailure.accept(new IllegalArgumentException("Event ID is missing"));
+                    return;
+                }
+
+                db.collection(EVENTS_COLLECTION).document(event.getEventId())
+                        .set(event)
+                        .addOnSuccessListener(aVoid -> {
+                            if (onSuccess != null) onSuccess.run();
+                        })
+                        .addOnFailureListener(e -> {
+                            if (onFailure != null) onFailure.accept(e);
+                        });
+        });
+    }
 }

@@ -25,7 +25,6 @@
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/buttonDeleteEvent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Montreal Jazz Festival" />
 
@@ -68,7 +67,7 @@
             tools:text="Oct 25, 2023 • 7:00 PM" />
 
         <TextView
-            android:id="@+id/tvEventSeats"
+            android:id="@+id/tvReservationQuantity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -81,32 +80,13 @@
             tools:text="150 seats remaining" />
 
         <Button
-            android:id="@+id/buttonDeleteEvent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Delete"
-            app:backgroundTint="@color/error"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/buttonEditEvent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Edit"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonDeleteEvent" />
-
-        <Button
-            android:id="@+id/buttonBookEvent"
+            android:id="@+id/buttonCancelEvent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="56dp"
-            android:text="Book"
+            android:text="Cancel"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonDeleteEvent" />
+            app:layout_constraintTop_toBottomOf="@id/tvEventName" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

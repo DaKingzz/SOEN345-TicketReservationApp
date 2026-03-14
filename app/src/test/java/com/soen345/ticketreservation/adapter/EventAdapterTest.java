@@ -47,6 +47,8 @@ class EventAdapterTest {
     @Mock
     private Button editBtn;
     @Mock
+    private Button bookBtn;
+    @Mock
     private TextView tvEventName;
     @Mock
     private TextView tvEventCategory;
@@ -75,6 +77,7 @@ class EventAdapterTest {
         holder.tvEventLocation = tvEventLocation;
         holder.tvEventDateTime = tvEventDateTime;
         holder.tvEventSeats = tvEventSeats;
+        holder.bookButton = bookBtn;
     }
 
     @Test
@@ -147,6 +150,7 @@ class EventAdapterTest {
         when(view.findViewById(R.id.tvEventLocation)).thenReturn(tvEventLocation);
         when(view.findViewById(R.id.tvEventDateTime)).thenReturn(tvEventDateTime);
         when(view.findViewById(R.id.tvEventSeats)).thenReturn(tvEventSeats);
+        when(view.findViewById(R.id.buttonBookEvent)).thenReturn(bookBtn);
 
         EventAdapter.EventViewHolder viewHolder = new EventAdapter.EventViewHolder(view);
 
@@ -157,6 +161,7 @@ class EventAdapterTest {
         assertEquals(tvEventLocation, viewHolder.tvEventLocation);
         assertEquals(tvEventDateTime, viewHolder.tvEventDateTime);
         assertEquals(tvEventSeats, viewHolder.tvEventSeats);
+        assertEquals(bookBtn, viewHolder.bookButton);
     }
 
     @Test
@@ -176,6 +181,7 @@ class EventAdapterTest {
         when(view.findViewById(R.id.tvEventLocation)).thenReturn(tvEventLocation);
         when(view.findViewById(R.id.tvEventDateTime)).thenReturn(tvEventDateTime);
         when(view.findViewById(R.id.tvEventSeats)).thenReturn(tvEventSeats);
+        when(view.findViewById(R.id.buttonBookEvent)).thenReturn(bookBtn);
 
         try (MockedStatic<LayoutInflater> mockedInflater = mockStatic(LayoutInflater.class)) {
             mockedInflater.when(() -> LayoutInflater.from(context)).thenReturn(inflater);

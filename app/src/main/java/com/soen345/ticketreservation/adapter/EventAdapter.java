@@ -54,11 +54,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         if (isAdmin) {
             holder.deleteBtn.setVisibility(View.VISIBLE);
             holder.editBtn.setVisibility(View.VISIBLE);
+            holder.bookButton.setVisibility(View.GONE);
             holder.deleteBtn.setOnClickListener(v -> listener.onDeleteClick(event, position));
             holder.editBtn.setOnClickListener(v -> listener.onEditClick(event, position));
         } else {
             holder.deleteBtn.setVisibility(View.GONE);
             holder.editBtn.setVisibility(View.GONE);
+            holder.bookButton.setVisibility(View.VISIBLE);
+            holder.bookButton.setOnClickListener(v -> listener.onBookClick(event, position));
         }
 
         holder.tvEventName.setText(event.getName());
@@ -77,12 +80,14 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView tvEventName, tvEventCategory, tvEventLocation, tvEventDateTime, tvEventSeats;
-        Button deleteBtn, editBtn;
+        Button deleteBtn, editBtn, bookButton;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             deleteBtn = itemView.findViewById(R.id.buttonDeleteEvent);
             editBtn = itemView.findViewById(R.id.buttonEditEvent);
+            bookButton = itemView.findViewById(R.id.buttonBookEvent);
+            bookButton = itemView.findViewById(R.id.buttonBookEvent);
             tvEventName = itemView.findViewById(R.id.tvEventName);
             tvEventCategory = itemView.findViewById(R.id.tvEventCategory);
             tvEventLocation = itemView.findViewById(R.id.tvEventLocation);
