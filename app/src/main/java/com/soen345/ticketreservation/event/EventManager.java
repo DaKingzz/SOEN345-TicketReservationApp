@@ -27,7 +27,7 @@ public class EventManager {
     }
 
     @VisibleForTesting
-    EventManager(FirebaseFirestore db, AuthManager authManager) {
+    public EventManager(FirebaseFirestore db, AuthManager authManager) {
         this.db = db;
         this.authManager = authManager;
     }

@@ -15,6 +15,9 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +45,15 @@ jobs:
 
       - name: Run unit tests
         run: gradle testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Unit Test Results
+          path: app/build/test-results/testDebugUnitTest/*.xml
+          reporter: java-junit
+          fail-on-error: true
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4

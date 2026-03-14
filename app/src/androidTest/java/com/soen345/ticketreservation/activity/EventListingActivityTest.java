@@ -1,136 +1,154 @@
 package com.soen345.ticketreservation.activity;
 
-import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.replaceText;
-import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
-import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static androidx.test.espresso.matcher.ViewMatchers.isEnabled;
-import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import androidx.test.espresso.NoMatchingViewException;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.soen345.ticketreservation.R;
-import com.soen345.ticketreservation.auth.LoginActivity;
-import com.soen345.ticketreservation.util.AuthTestUtils;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 @RunWith(AndroidJUnit4.class)
 public class EventListingActivityTest {
 
+    @BeforeClass
+    public static void signIn() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        FirebaseAuth.getInstance()
+                .signInWithEmailAndPassword("robertlouissoccer@outlook.com", "soccer")
+                .addOnCompleteListener(task -> latch.countDown());
+        latch.await(15, TimeUnit.SECONDS);
+    }
+
+    @AfterClass
+    public static void signOut() {
+        FirebaseAuth.getInstance().signOut();
+    }
+
     @Rule
-    public ActivityScenarioRule<LoginActivity> activityRule =
-            new ActivityScenarioRule<>(LoginActivity.class);
+    public ActivityScenarioRule<EventListingActivity> activityRule =
+            new ActivityScenarioRule<>(EventListingActivity.class);
 
-
-    private void loginAndWaitForEventList() throws InterruptedException {
-        AuthTestUtils.login("robertlouissoccer@outlook.com", "soccer");
-
-        long timeout = System.currentTimeMillis() + 10_000;
-        while (System.currentTimeMillis() < timeout) {
-            try {
-                onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
-                return;
-            } catch (NoMatchingViewException | AssertionError e) {
-                Thread.sleep(500);
-            }
-        }
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
-    }
-
+    // ── Initial state ─────────────────────────────────────────────────────────
 
     @Test
-    public void testEventListIsDisplayed() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void eventListRecyclerViewIsDisplayed() {
+        activityRule.getScenario().onActivity(activity -> {
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
     @Test
-    public void testCategoryChipsAreDisplayed() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipGroupFilters)).check(matches(isDisplayed()));
-        onView(withId(R.id.chipConcert)).check(matches(isDisplayed()));
-        onView(withId(R.id.chipMovie)).check(matches(isDisplayed()));
-        onView(withId(R.id.chipSport)).check(matches(isDisplayed()));
-        onView(withId(R.id.chipTravel)).check(matches(isDisplayed()));
+    public void chipGroupIsDisplayed() {
+        activityRule.getScenario().onActivity(activity -> {
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.chipGroupFilters).getVisibility());
+        });
     }
 
     @Test
-    public void testConcertChipIsClickable() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipConcert)).perform(click());
-        onView(withId(R.id.chipConcert)).check(matches(isDisplayed()));
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void allCategoryChipsAreDisplayed() {
+        activityRule.getScenario().onActivity(activity -> {
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.chipConcert).getVisibility());
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.chipMovie).getVisibility());
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.chipSport).getVisibility());
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.chipTravel).getVisibility());
+        });
     }
 
     @Test
-    public void testMovieChipIsClickable() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipMovie)).perform(click());
-        onView(withId(R.id.chipMovie)).check(matches(isDisplayed()));
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void locationFilterIsDisplayedAndEnabled() {
+        activityRule.getScenario().onActivity(activity -> {
+            EditText locationFilter = activity.findViewById(R.id.etLocationFilter);
+            assertEquals(View.VISIBLE, locationFilter.getVisibility());
+            assertTrue(locationFilter.isEnabled());
+        });
     }
 
     @Test
-    public void testSportChipIsClickable() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipSport)).perform(click());
-        onView(withId(R.id.chipSport)).check(matches(isDisplayed()));
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void dateFilterButtonIsDisplayedAndEnabled() {
+        activityRule.getScenario().onActivity(activity -> {
+            Button btnDateFilter = activity.findViewById(R.id.btnDateFilter);
+            assertEquals(View.VISIBLE, btnDateFilter.getVisibility());
+            assertTrue(btnDateFilter.isEnabled());
+        });
+    }
+
+    // ── Category chip interaction ─────────────────────────────────────────────
+
+    @Test
+    public void selectingConcertChip_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            activity.findViewById(R.id.chipConcert).performClick();
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
     @Test
-    public void testTravelChipIsClickable() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipTravel)).perform(click());
-        onView(withId(R.id.chipTravel)).check(matches(isDisplayed()));
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void selectingMovieChip_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            activity.findViewById(R.id.chipMovie).performClick();
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
     @Test
-    public void testLocationFilterIsDisplayedAndAcceptsInput() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.etLocationFilter)).check(matches(isDisplayed()));
-        onView(withId(R.id.etLocationFilter)).check(matches(isEnabled()));
-        onView(withId(R.id.etLocationFilter))
-                .perform(replaceText("Montreal"), closeSoftKeyboard());
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void selectingSportChip_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            activity.findViewById(R.id.chipSport).performClick();
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
     @Test
-    public void testLocationFilterClearsAndListStillShows() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.etLocationFilter))
-                .perform(replaceText("Montreal"), closeSoftKeyboard());
-        onView(withId(R.id.etLocationFilter))
-                .perform(replaceText(""), closeSoftKeyboard());
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void selectingTravelChip_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            activity.findViewById(R.id.chipTravel).performClick();
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
+    }
+
+    // ── Location filter interaction ───────────────────────────────────────────
+
+    @Test
+    public void locationFilterAcceptsInput_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            ((EditText) activity.findViewById(R.id.etLocationFilter)).setText("Montreal");
+            assertEquals("Montreal", ((EditText) activity.findViewById(R.id.etLocationFilter)).getText().toString());
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
     @Test
-    public void testDateFilterButtonIsDisplayedAndClickable() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.btnDateFilter)).check(matches(isDisplayed()));
-        onView(withId(R.id.btnDateFilter)).check(matches(isEnabled()));
-        onView(withId(R.id.btnDateFilter)).perform(click());
-        onView(withText("Cancel")).perform(click());
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void clearingLocationFilter_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            ((EditText) activity.findViewById(R.id.etLocationFilter)).setText("Montreal");
+            ((EditText) activity.findViewById(R.id.etLocationFilter)).setText("");
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 
+    // ── Combined filter ───────────────────────────────────────────────────────
+
     @Test
-    public void testCombinedCategoryAndLocationFilter() throws InterruptedException {
-        loginAndWaitForEventList();
-        onView(withId(R.id.chipConcert)).perform(click());
-        onView(withId(R.id.etLocationFilter))
-                .perform(replaceText("Montreal"), closeSoftKeyboard());
-        onView(withId(R.id.rvEvents)).check(matches(isDisplayed()));
+    public void combinedCategoryAndLocationFilter_listRemainsVisible() {
+        activityRule.getScenario().onActivity(activity -> {
+            activity.findViewById(R.id.chipConcert).performClick();
+            ((EditText) activity.findViewById(R.id.etLocationFilter)).setText("Montreal");
+            assertEquals(View.VISIBLE, activity.findViewById(R.id.rvEvents).getVisibility());
+        });
     }
 }

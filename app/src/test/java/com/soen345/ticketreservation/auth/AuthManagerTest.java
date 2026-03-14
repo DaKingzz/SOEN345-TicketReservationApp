@@ -20,6 +20,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -28,21 +29,17 @@ import com.soen345.ticketreservation.model.User;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @ExtendWith(MockitoExtension.class)
 class AuthManagerTest {
-
-    // ── Mocks ─────────────────────────────────────────────────────────────────
 
     @Mock private FirebaseAuth            mockAuth;
     @Mock private FirebaseFirestore       mockDb;
@@ -53,37 +50,26 @@ class AuthManagerTest {
     @Mock private Task<AuthResult>        authTask;
     @Mock private Task<Void>              voidTask;
     @Mock private Task<DocumentSnapshot>  docTask;
+    @Mock private PhoneAuthCredential     mockCredential;
 
     private AuthManager authManager;
-    private MockedStatic<FirebaseAuth>      staticAuth;
-    private MockedStatic<FirebaseFirestore> staticFirestore;
-
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    private MockedStatic<FirebaseAuth>      mockedAuth;
+    private MockedStatic<FirebaseFirestore> mockedFirestore;
 
     @BeforeEach
-    void setUp() throws Exception {
-        resetSingleton();
-        staticAuth      = mockStatic(FirebaseAuth.class);
-        staticFirestore = mockStatic(FirebaseFirestore.class);
-        staticAuth.when(FirebaseAuth::getInstance).thenReturn(mockAuth);
-        staticFirestore.when(FirebaseFirestore::getInstance).thenReturn(mockDb);
-        authManager = AuthManager.getInstance();
+    void setUp() {
+        authManager = new AuthManager(mockAuth, mockDb);
+        mockedAuth      = mockStatic(FirebaseAuth.class);
+        mockedFirestore = mockStatic(FirebaseFirestore.class);
     }
 
     @AfterEach
-    void tearDown() throws Exception {
-        staticAuth.close();
-        staticFirestore.close();
-        resetSingleton();
+    void tearDown() {
+        mockedAuth.close();
+        mockedFirestore.close();
     }
 
-    private void resetSingleton() throws Exception {
-        Field field = AuthManager.class.getDeclaredField("instance");
-        field.setAccessible(true);
-        field.set(null, null);
-    }
-
-    // ── Stub helpers ──────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     @SuppressWarnings("unchecked")
     private void completeAuthSuccess() {
@@ -151,374 +137,393 @@ class AuthManagerTest {
         when(mockDocRef.get()).thenReturn(docTask);
     }
 
-    // ═════════════════════════════════════════════════════════════════════════
-
-    @Nested
-    class SingletonTest {
-
-        @Test
-        void getInstance_alwaysReturnsSameObject() {
-            assertSame(authManager, AuthManager.getInstance());
-        }
+    @SuppressWarnings("unchecked")
+    private void docTaskSuccessSnapshot() {
+        when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
+            ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
+            return docTask;
+        });
+        when(docTask.addOnFailureListener(any())).thenReturn(docTask);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Nested
-    class IsLoggedInTests {
-
-        @Test
-        void isLoggedIn_withCurrentUser_returnsTrue() {
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            assertTrue(authManager.isLoggedIn());
-        }
-
-        @Test
-        void isLoggedIn_withoutCurrentUser_returnsFalse() {
-            when(mockAuth.getCurrentUser()).thenReturn(null);
-            assertFalse(authManager.isLoggedIn());
-        }
+    @SuppressWarnings("unchecked")
+    private void docTaskFailure() {
+        when(docTask.addOnSuccessListener(any())).thenReturn(docTask);
+        when(docTask.addOnFailureListener(any())).thenAnswer(inv -> {
+            ((OnFailureListener) inv.getArgument(0)).onFailure(new Exception("Firestore error"));
+            return docTask;
+        });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Singleton ─────────────────────────────────────────────────────────────
 
-    @Nested
-    class LogoutTest {
+    @Test
+    void getInstance_returnsSameInstance() {
+        mockedAuth.when(FirebaseAuth::getInstance).thenReturn(mockAuth);
+        mockedFirestore.when(FirebaseFirestore::getInstance).thenReturn(mockDb);
 
-        @Test
-        void logout_delegatesToFirebaseSignOut() {
-            authManager.logout();
-            verify(mockAuth).signOut();
-        }
+        AuthManager instance1 = AuthManager.getInstance();
+        AuthManager instance2 = AuthManager.getInstance();
+        assertNotNull(instance1);
+        assertSame(instance1, instance2);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── isLoggedIn ────────────────────────────────────────────────────────────
 
-    @Nested
-    class LoginWithEmailTests {
-
-        @Test
-        void loginWithEmail_success_callsOnSuccess() {
-            when(mockAuth.signInWithEmailAndPassword("a@b.com", "pass"))
-                    .thenReturn(authTask);
-            completeAuthSuccess();
-
-            AtomicBoolean ok = new AtomicBoolean(false);
-            authManager.loginWithEmail("a@b.com", "pass", new AuthCallback() {
-                public void onSuccess()           { ok.set(true); }
-                public void onFailure(String msg) {}
-            });
-
-            assertTrue(ok.get());
-        }
-
-        @Test
-        void loginWithEmail_failure_callsOnFailureWithServerMessage() {
-            when(mockAuth.signInWithEmailAndPassword(anyString(), anyString()))
-                    .thenReturn(authTask);
-            completeAuthFailure("Invalid credentials");
-
-            AtomicReference<String> err = new AtomicReference<>();
-            authManager.loginWithEmail("a@b.com", "wrong", new AuthCallback() {
-                public void onSuccess()           {}
-                public void onFailure(String msg) { err.set(msg); }
-            });
-
-            assertEquals("Invalid credentials", err.get());
-        }
+    @Test
+    void isLoggedIn_withCurrentUser_returnsTrue() {
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        assertTrue(authManager.isLoggedIn());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
-    @Nested
-    class RegisterWithEmailTests {
-
-        @Test
-        void registerWithEmail_success_savesUserToFirestoreAndCallsOnSuccess() {
-            when(mockAuth.createUserWithEmailAndPassword("a@b.com", "pass"))
-                    .thenReturn(authTask);
-            completeAuthSuccess();
-
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            when(mockUser.getUid()).thenReturn("uid-1");
-
-            when(mockDb.collection("users")).thenReturn(mockCollection);
-            when(mockCollection.document("uid-1")).thenReturn(mockDocRef);
-            when(mockDocRef.set(any(User.class))).thenReturn(voidTask);
-            firestoreSetSuccess();
-
-            AtomicBoolean ok = new AtomicBoolean(false);
-            authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
-                public void onSuccess()           { ok.set(true); }
-                public void onFailure(String msg) {}
-            });
-
-            assertTrue(ok.get());
-        }
-
-        @Test
-        void registerWithEmail_authTaskFails_callsOnFailure() {
-            when(mockAuth.createUserWithEmailAndPassword(anyString(), anyString()))
-                    .thenReturn(authTask);
-            completeAuthFailure("Email already in use");
-
-            AtomicReference<String> err = new AtomicReference<>();
-            authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
-                public void onSuccess()           {}
-                public void onFailure(String msg) { err.set(msg); }
-            });
-
-            assertEquals("Email already in use", err.get());
-        }
-
-        @Test
-        void registerWithEmail_authSucceedsButCurrentUserNull_callsOnFailure() {
-            when(mockAuth.createUserWithEmailAndPassword(anyString(), anyString()))
-                    .thenReturn(authTask);
-            completeAuthSuccess();
-            when(mockAuth.getCurrentUser()).thenReturn(null);
-
-            AtomicReference<String> err = new AtomicReference<>();
-            authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
-                public void onSuccess()           {}
-                public void onFailure(String msg) { err.set(msg); }
-            });
-
-            assertNotNull(err.get());
-            assertTrue(err.get().contains("could not retrieve user"));
-        }
+    @Test
+    void isLoggedIn_withoutCurrentUser_returnsFalse() {
+        when(mockAuth.getCurrentUser()).thenReturn(null);
+        assertFalse(authManager.isLoggedIn());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── logout ────────────────────────────────────────────────────────────────
 
-    @Nested
-    class SendPasswordResetEmailTests {
-
-        @Test
-        void sendPasswordResetEmail_success_callsOnSuccess() {
-            when(mockAuth.sendPasswordResetEmail("a@b.com")).thenReturn(voidTask);
-            completeVoidSuccess();
-
-            AtomicBoolean ok = new AtomicBoolean(false);
-            authManager.sendPasswordResetEmail("a@b.com", new AuthCallback() {
-                public void onSuccess()           { ok.set(true); }
-                public void onFailure(String msg) {}
-            });
-
-            assertTrue(ok.get());
-        }
-
-        @Test
-        void sendPasswordResetEmail_failure_callsOnFailure() {
-            when(mockAuth.sendPasswordResetEmail("a@b.com")).thenReturn(voidTask);
-            completeVoidFailure("No user record");
-
-            AtomicReference<String> err = new AtomicReference<>();
-            authManager.sendPasswordResetEmail("a@b.com", new AuthCallback() {
-                public void onSuccess()           {}
-                public void onFailure(String msg) { err.set(msg); }
-            });
-
-            assertEquals("No user record", err.get());
-        }
+    @Test
+    void logout_delegatesToFirebaseSignOut() {
+        authManager.logout();
+        verify(mockAuth).signOut();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── loginWithEmail ────────────────────────────────────────────────────────
 
-    @Nested
-    class CheckAdminStatusTests {
+    @Test
+    void loginWithEmail_success_callsOnSuccess() {
+        when(mockAuth.signInWithEmailAndPassword("a@b.com", "pass")).thenReturn(authTask);
+        completeAuthSuccess();
 
-        @Test
-        void checkAdminStatus_notLoggedIn_returnsFalse() {
-            // FirebaseAuth.getInstance().getCurrentUser() → null (no Firestore call expected)
-            when(mockAuth.getCurrentUser()).thenReturn(null);
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.loginWithEmail("a@b.com", "pass", new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
 
-            AtomicBoolean result = new AtomicBoolean(true);
-            authManager.checkAdminStatus(result::set);
-
-            assertFalse(result.get());
-        }
-
-        @Test
-        void checkAdminStatus_userHasAdminRole_returnsTrue() {
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            when(mockUser.getUid()).thenReturn("uid-admin");
-            stubFirestoreGet("uid-admin");
-
-            //noinspection unchecked
-            when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
-                ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
-                return docTask;
-            });
-            when(docTask.addOnFailureListener(any())).thenReturn(docTask);
-            when(mockDocSnapshot.exists()).thenReturn(true);
-            when(mockDocSnapshot.getString("role")).thenReturn("admin");
-
-            AtomicBoolean result = new AtomicBoolean(false);
-            authManager.checkAdminStatus(result::set);
-
-            assertTrue(result.get());
-        }
-
-        @Test
-        void checkAdminStatus_userHasCustomerRole_returnsFalse() {
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            when(mockUser.getUid()).thenReturn("uid-cust");
-            stubFirestoreGet("uid-cust");
-
-            //noinspection unchecked
-            when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
-                ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
-                return docTask;
-            });
-            when(docTask.addOnFailureListener(any())).thenReturn(docTask);
-            when(mockDocSnapshot.exists()).thenReturn(true);
-            when(mockDocSnapshot.getString("role")).thenReturn("customer");
-
-            AtomicBoolean result = new AtomicBoolean(true);
-            authManager.checkAdminStatus(result::set);
-
-            assertFalse(result.get());
-        }
-
-        @Test
-        void checkAdminStatus_userDocumentMissing_returnsFalse() {
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            when(mockUser.getUid()).thenReturn("uid-gone");
-            stubFirestoreGet("uid-gone");
-
-            //noinspection unchecked
-            when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
-                ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
-                return docTask;
-            });
-            when(docTask.addOnFailureListener(any())).thenReturn(docTask);
-            when(mockDocSnapshot.exists()).thenReturn(false); // document not found
-
-            AtomicBoolean result = new AtomicBoolean(true);
-            authManager.checkAdminStatus(result::set);
-
-            assertFalse(result.get());
-        }
-
-        @Test
-        void checkAdminStatus_firestoreError_returnsFalse() {
-            when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-            when(mockUser.getUid()).thenReturn("uid-err");
-            stubFirestoreGet("uid-err");
-
-            when(docTask.addOnSuccessListener(any())).thenReturn(docTask);
-            //noinspection unchecked
-            when(docTask.addOnFailureListener(any())).thenAnswer(inv -> {
-                ((OnFailureListener) inv.getArgument(0)).onFailure(new Exception("Network error"));
-                return docTask;
-            });
-
-            AtomicBoolean result = new AtomicBoolean(true);
-            authManager.checkAdminStatus(result::set);
-
-            assertFalse(result.get());
-        }
+        assertTrue(ok.get());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    @Test
+    void loginWithEmail_failure_callsOnFailureWithServerMessage() {
+        when(mockAuth.signInWithEmailAndPassword(anyString(), anyString())).thenReturn(authTask);
+        completeAuthFailure("Invalid credentials");
 
-    @Nested
-    class SaveUserToFirestoreTests {
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.loginWithEmail("a@b.com", "wrong", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
 
-        @Test
-        void saveUserToFirestore_success_callsOnSuccess() {
-            User user = new User("uid-s", "a@b.com", null, "Bob", User.ROLE_CUSTOMER);
-            when(mockDb.collection("users")).thenReturn(mockCollection);
-            when(mockCollection.document("uid-s")).thenReturn(mockDocRef);
-            when(mockDocRef.set(user)).thenReturn(voidTask);
-            firestoreSetSuccess();
-
-            AtomicBoolean ok = new AtomicBoolean(false);
-            authManager.saveUserToFirestore(user, new AuthCallback() {
-                public void onSuccess()           { ok.set(true); }
-                public void onFailure(String msg) {}
-            });
-
-            assertTrue(ok.get());
-        }
-
-        @Test
-        void saveUserToFirestore_failure_callsOnFailure() {
-            User user = new User("uid-s", "a@b.com", null, "Bob", User.ROLE_CUSTOMER);
-            when(mockDb.collection("users")).thenReturn(mockCollection);
-            when(mockCollection.document("uid-s")).thenReturn(mockDocRef);
-            when(mockDocRef.set(user)).thenReturn(voidTask);
-            firestoreSetFailure("Write failed");
-
-            AtomicReference<String> err = new AtomicReference<>();
-            authManager.saveUserToFirestore(user, new AuthCallback() {
-                public void onSuccess()           {}
-                public void onFailure(String msg) { err.set(msg); }
-            });
-
-            assertEquals("Write failed", err.get());
-        }
+        assertEquals("Invalid credentials", err.get());
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── registerWithEmail ─────────────────────────────────────────────────────
 
-    @Nested
-    class GetUserFromFirestoreTests {
+    @Test
+    void registerWithEmail_success_savesUserToFirestoreAndCallsOnSuccess() {
+        when(mockAuth.createUserWithEmailAndPassword("a@b.com", "pass")).thenReturn(authTask);
+        completeAuthSuccess();
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-1");
 
-        @Test
-        void getUserFromFirestore_documentExists_returnsUser() {
-            stubFirestoreGet("uid-g");
+        when(mockDb.collection("users")).thenReturn(mockCollection);
+        when(mockCollection.document("uid-1")).thenReturn(mockDocRef);
+        when(mockDocRef.set(any(User.class))).thenReturn(voidTask);
+        firestoreSetSuccess();
 
-            //noinspection unchecked
-            when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
-                ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
-                return docTask;
-            });
-            when(docTask.addOnFailureListener(any())).thenReturn(docTask);
-            when(mockDocSnapshot.exists()).thenReturn(true);
-            User expected = new User("uid-g", "a@b.com", null, "Carol", User.ROLE_CUSTOMER);
-            when(mockDocSnapshot.toObject(User.class)).thenReturn(expected);
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
 
-            AtomicReference<User> result = new AtomicReference<>();
-            authManager.getUserFromFirestore("uid-g", result::set);
+        assertTrue(ok.get());
+    }
 
-            assertSame(expected, result.get());
-        }
+    @Test
+    void registerWithEmail_authTaskFails_callsOnFailure() {
+        when(mockAuth.createUserWithEmailAndPassword(anyString(), anyString())).thenReturn(authTask);
+        completeAuthFailure("Email already in use");
 
-        @Test
-        void getUserFromFirestore_documentNotFound_returnsNull() {
-            stubFirestoreGet("uid-missing");
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
 
-            //noinspection unchecked
-            when(docTask.addOnSuccessListener(any())).thenAnswer(inv -> {
-                ((OnSuccessListener<DocumentSnapshot>) inv.getArgument(0)).onSuccess(mockDocSnapshot);
-                return docTask;
-            });
-            when(docTask.addOnFailureListener(any())).thenReturn(docTask);
-            when(mockDocSnapshot.exists()).thenReturn(false);
+        assertEquals("Email already in use", err.get());
+    }
 
-            AtomicReference<User> result = new AtomicReference<>(new User());
-            authManager.getUserFromFirestore("uid-missing", result::set);
+    @Test
+    void registerWithEmail_authSucceedsButCurrentUserNull_callsOnFailure() {
+        when(mockAuth.createUserWithEmailAndPassword(anyString(), anyString())).thenReturn(authTask);
+        completeAuthSuccess();
+        when(mockAuth.getCurrentUser()).thenReturn(null);
 
-            assertNull(result.get());
-        }
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.registerWithEmail("a@b.com", "pass", "Alice", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
 
-        @Test
-        void getUserFromFirestore_firestoreError_returnsNull() {
-            stubFirestoreGet("uid-fail");
+        assertNotNull(err.get());
+        assertTrue(err.get().contains("could not retrieve user"));
+    }
 
-            when(docTask.addOnSuccessListener(any())).thenReturn(docTask);
-            //noinspection unchecked
-            when(docTask.addOnFailureListener(any())).thenAnswer(inv -> {
-                ((OnFailureListener) inv.getArgument(0)).onFailure(new Exception("Read error"));
-                return docTask;
-            });
+    // ── sendPasswordResetEmail ────────────────────────────────────────────────
 
-            AtomicReference<User> result = new AtomicReference<>(new User());
-            authManager.getUserFromFirestore("uid-fail", result::set);
+    @Test
+    void sendPasswordResetEmail_success_callsOnSuccess() {
+        when(mockAuth.sendPasswordResetEmail("a@b.com")).thenReturn(voidTask);
+        completeVoidSuccess();
 
-            assertNull(result.get());
-        }
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.sendPasswordResetEmail("a@b.com", new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
+
+        assertTrue(ok.get());
+    }
+
+    @Test
+    void sendPasswordResetEmail_failure_callsOnFailure() {
+        when(mockAuth.sendPasswordResetEmail("a@b.com")).thenReturn(voidTask);
+        completeVoidFailure("No user record");
+
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.sendPasswordResetEmail("a@b.com", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
+
+        assertEquals("No user record", err.get());
+    }
+
+    // ── checkAdminStatus ──────────────────────────────────────────────────────
+
+    @Test
+    void checkAdminStatus_notLoggedIn_returnsFalse() {
+        when(mockAuth.getCurrentUser()).thenReturn(null);
+
+        AtomicBoolean result = new AtomicBoolean(true);
+        authManager.checkAdminStatus(result::set);
+
+        assertFalse(result.get());
+    }
+
+    @Test
+    void checkAdminStatus_userHasAdminRole_returnsTrue() {
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-admin");
+        stubFirestoreGet("uid-admin");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(true);
+        when(mockDocSnapshot.getString("role")).thenReturn("admin");
+
+        AtomicBoolean result = new AtomicBoolean(false);
+        authManager.checkAdminStatus(result::set);
+
+        assertTrue(result.get());
+    }
+
+    @Test
+    void checkAdminStatus_userHasCustomerRole_returnsFalse() {
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-cust");
+        stubFirestoreGet("uid-cust");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(true);
+        when(mockDocSnapshot.getString("role")).thenReturn("customer");
+
+        AtomicBoolean result = new AtomicBoolean(true);
+        authManager.checkAdminStatus(result::set);
+
+        assertFalse(result.get());
+    }
+
+    @Test
+    void checkAdminStatus_userDocumentMissing_returnsFalse() {
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-gone");
+        stubFirestoreGet("uid-gone");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(false);
+
+        AtomicBoolean result = new AtomicBoolean(true);
+        authManager.checkAdminStatus(result::set);
+
+        assertFalse(result.get());
+    }
+
+    @Test
+    void checkAdminStatus_firestoreError_returnsFalse() {
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-err");
+        stubFirestoreGet("uid-err");
+        docTaskFailure();
+
+        AtomicBoolean result = new AtomicBoolean(true);
+        authManager.checkAdminStatus(result::set);
+
+        assertFalse(result.get());
+    }
+
+    // ── saveUserToFirestore ───────────────────────────────────────────────────
+
+    @Test
+    void saveUserToFirestore_success_callsOnSuccess() {
+        User user = new User("uid-s", "a@b.com", null, "Bob", User.ROLE_CUSTOMER);
+        when(mockDb.collection("users")).thenReturn(mockCollection);
+        when(mockCollection.document("uid-s")).thenReturn(mockDocRef);
+        when(mockDocRef.set(user)).thenReturn(voidTask);
+        firestoreSetSuccess();
+
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.saveUserToFirestore(user, new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
+
+        assertTrue(ok.get());
+    }
+
+    @Test
+    void saveUserToFirestore_failure_callsOnFailure() {
+        User user = new User("uid-s", "a@b.com", null, "Bob", User.ROLE_CUSTOMER);
+        when(mockDb.collection("users")).thenReturn(mockCollection);
+        when(mockCollection.document("uid-s")).thenReturn(mockDocRef);
+        when(mockDocRef.set(user)).thenReturn(voidTask);
+        firestoreSetFailure("Write failed");
+
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.saveUserToFirestore(user, new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
+
+        assertEquals("Write failed", err.get());
+    }
+
+    // ── getUserFromFirestore ──────────────────────────────────────────────────
+
+    @Test
+    void getUserFromFirestore_documentExists_returnsUser() {
+        stubFirestoreGet("uid-g");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(true);
+        User expected = new User("uid-g", "a@b.com", null, "Carol", User.ROLE_CUSTOMER);
+        when(mockDocSnapshot.toObject(User.class)).thenReturn(expected);
+
+        AtomicReference<User> result = new AtomicReference<>();
+        authManager.getUserFromFirestore("uid-g", result::set);
+
+        assertSame(expected, result.get());
+    }
+
+    @Test
+    void getUserFromFirestore_documentNotFound_returnsNull() {
+        stubFirestoreGet("uid-missing");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(false);
+
+        AtomicReference<User> result = new AtomicReference<>(new User());
+        authManager.getUserFromFirestore("uid-missing", result::set);
+
+        assertNull(result.get());
+    }
+
+    @Test
+    void getUserFromFirestore_firestoreError_returnsNull() {
+        stubFirestoreGet("uid-fail");
+        docTaskFailure();
+
+        AtomicReference<User> result = new AtomicReference<>(new User());
+        authManager.getUserFromFirestore("uid-fail", result::set);
+
+        assertNull(result.get());
+    }
+
+    // ── signInWithPhoneCredential ─────────────────────────────────────────────
+
+    @Test
+    void signInWithPhoneCredential_failure_callsOnFailure() {
+        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
+        completeAuthFailure("OTP verification failed");
+
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
+
+        assertEquals("OTP verification failed", err.get());
+    }
+
+    @Test
+    void signInWithPhoneCredential_authSucceedsButUserNull_callsOnFailure() {
+        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
+        completeAuthSuccess();
+        when(mockAuth.getCurrentUser()).thenReturn(null);
+
+        AtomicReference<String> err = new AtomicReference<>();
+        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
+            public void onSuccess()           {}
+            public void onFailure(String msg) { err.set(msg); }
+        });
+
+        assertNotNull(err.get());
+        assertTrue(err.get().contains("user is null"));
+    }
+
+    @Test
+    void signInWithPhoneCredential_existingUser_callsOnSuccess() {
+        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
+        completeAuthSuccess();
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-phone");
+
+        // checkUserExists → Firestore doc exists
+        stubFirestoreGet("uid-phone");
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(true);
+
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
+
+        assertTrue(ok.get());
+    }
+
+    @Test
+    void signInWithPhoneCredential_newUser_savesToFirestoreAndCallsOnSuccess() {
+        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
+        completeAuthSuccess();
+        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
+        when(mockUser.getUid()).thenReturn("uid-new");
+
+        // checkUserExists → doc does NOT exist
+        when(mockDb.collection("users")).thenReturn(mockCollection);
+        when(mockCollection.document("uid-new")).thenReturn(mockDocRef);
+        when(mockDocRef.get()).thenReturn(docTask);
+        docTaskSuccessSnapshot();
+        when(mockDocSnapshot.exists()).thenReturn(false);
+
+        // saveUserToFirestore → success
+        when(mockDocRef.set(any(User.class))).thenReturn(voidTask);
+        firestoreSetSuccess();
+
+        AtomicBoolean ok = new AtomicBoolean(false);
+        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
+            public void onSuccess()           { ok.set(true); }
+            public void onFailure(String msg) {}
+        });
+
+        assertTrue(ok.get());
     }
 }

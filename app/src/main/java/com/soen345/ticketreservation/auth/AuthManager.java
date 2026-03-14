@@ -33,6 +33,13 @@ public class AuthManager {
         isAdmin=false;
     }
 
+    @androidx.annotation.VisibleForTesting
+    public AuthManager(FirebaseAuth auth, FirebaseFirestore db) {
+        this.auth = auth;
+        this.db = db;
+        this.isAdmin = false;
+    }
+
     public static synchronized AuthManager getInstance() {
         if (instance == null) {
             instance = new AuthManager();
@@ -54,7 +61,7 @@ public class AuthManager {
         auth.signOut();
     }
     public void checkAdminStatus(OnAdminResult callback) {
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser firebaseUser = auth.getCurrentUser();
 
         if (firebaseUser == null) {
             callback.onResult(false);
