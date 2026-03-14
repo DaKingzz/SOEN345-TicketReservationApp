@@ -11,7 +11,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.soen345.ticketreservation.R;
 import com.soen345.ticketreservation.adapter.ReservationAdapter;
 import com.soen345.ticketreservation.event.EventManager;
-import com.soen345.ticketreservation.event.ReservationManager;
+import com.soen345.ticketreservation.reservation.ReservationManager;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.OnReservationInteractionListener;
 import com.soen345.ticketreservation.model.Reservation;

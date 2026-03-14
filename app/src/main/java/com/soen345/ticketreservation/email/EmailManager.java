@@ -1,4 +1,4 @@
-package com.soen345.ticketreservation.event;
+package com.soen345.ticketreservation.email;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;

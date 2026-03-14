@@ -87,6 +87,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             deleteBtn = itemView.findViewById(R.id.buttonDeleteEvent);
             editBtn = itemView.findViewById(R.id.buttonEditEvent);
             bookButton = itemView.findViewById(R.id.buttonBookEvent);
+            bookButton = itemView.findViewById(R.id.buttonBookEvent);
             tvEventName = itemView.findViewById(R.id.tvEventName);
             tvEventCategory = itemView.findViewById(R.id.tvEventCategory);
             tvEventLocation = itemView.findViewById(R.id.tvEventLocation);

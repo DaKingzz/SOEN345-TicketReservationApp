@@ -1,4 +1,4 @@
-package com.soen345.ticketreservation.event;
+package com.soen345.ticketreservation.reservation;
 
 import static android.content.ContentValues.TAG;
 
@@ -19,6 +19,8 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.Transaction;
 import com.soen345.ticketreservation.auth.AuthManager;
+import com.soen345.ticketreservation.email.EmailManager;
+import com.soen345.ticketreservation.event.EventManager;
 import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.Reservation;
 
