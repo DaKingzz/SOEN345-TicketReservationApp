@@ -33,7 +33,8 @@ public class AuthManager {
         isAdmin=false;
     }
 
-    AuthManager(FirebaseAuth auth, FirebaseFirestore db) {
+    @androidx.annotation.VisibleForTesting
+    public AuthManager(FirebaseAuth auth, FirebaseFirestore db) {
         this.auth = auth;
         this.db = db;
         this.isAdmin = false;
