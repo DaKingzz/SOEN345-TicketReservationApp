@@ -2,12 +2,12 @@ package com.soen345.ticketreservation.reservation;
 
 import static android.content.ContentValues.TAG;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -88,20 +88,22 @@ public class ReservationManager {
         }).addOnSuccessListener(aVoid -> {
             Log.d("Firestore", "Transaction success!");
             emailManager.sendConfirmation(authManager.getCurrentUser().getEmail(), event.getName(), reservation.getQuantity());
-            AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-            alertDialog.setTitle("Reservation Successful");
-            alertDialog.setMessage("Your reservation has been made.");
-            alertDialog.show();
+            new AlertDialog.Builder(context)
+                    .setTitle("Reservation Successful")
+                    .setMessage("Your reservation has been made.")
+                    .setPositiveButton("OK", null)
+                    .show();
         }).addOnFailureListener(e -> {
             Log.e("Firestore", "Transaction failure.", e);
-            AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-            alertDialog.setTitle("Reservation Failed");
-            if (e.getMessage() != null && e.getMessage().contains("Not enough seats")) {
-                alertDialog.setMessage("Sorry, there are not enough seats available for this event.");
-            } else {
-                alertDialog.setMessage("There was an error making your reservation.");
-            }
-            alertDialog.show();
+            String message = (e.getMessage() != null && e.getMessage().contains("Not enough seats"))
+                    ? "Sorry, there are not enough seats available for this event."
+                    : "There was an error making your reservation.";
+
+            new AlertDialog.Builder(context)
+                    .setTitle("Reservation Failed")
+                    .setMessage(message)
+                    .setPositiveButton("OK", null)
+                    .show();
         });
     }
 
@@ -156,20 +158,22 @@ public class ReservationManager {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Transaction success!");
-                        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                        alertDialog.setTitle("Reservation Cancelled");
-                        alertDialog.setMessage("Your reservation has been cancelled.");
-                        alertDialog.show();
+                        new AlertDialog.Builder(context)
+                                .setTitle("Reservation Cancelled")
+                                .setMessage("Your reservation has been cancelled.")
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.w(TAG, "Transaction failure.", e);
-                        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                        alertDialog.setTitle("Reservation Cancellation Failed");
-                        alertDialog.setMessage("There was an error cancelling your reservation.");
-                        alertDialog.show();
+                        new AlertDialog.Builder(context)
+                                .setTitle("Reservation Cancellation Failed")
+                                .setMessage("There was an error cancelling your reservation.")
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 });
     }
