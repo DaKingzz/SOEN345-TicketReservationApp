@@ -2,12 +2,12 @@ package com.soen345.ticketreservation.reservation;
 
 import static android.content.ContentValues.TAG;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -61,35 +61,50 @@ public class ReservationManager {
         if (!authManager.isLoggedIn()) {
             throw new IllegalStateException("User is not logged in");
         }
-        reservation.setReservationDate(new Date());
-        DocumentReference newDocRef = db.collection(RESERVATION_COLLECTION).document();
 
-        String generatedId = newDocRef.getId();
-        reservation.setReservationId(generatedId);
+        db.runTransaction(transaction -> {
+            DocumentReference eventRef = db.collection(EVENTS_COLLECTION).document(event.getEventId());
+            Event latestEvent = transaction.get(eventRef).toObject(Event.class);
 
-        newDocRef.set(reservation)
-                .addOnSuccessListener(aVoid -> {
-                    // Handle success
-                    Log.d("Firestore", "Reservation saved with internal ID: " + generatedId);
-                    event.setAvailableSeats(event.getAvailableSeats() - reservation.getQuantity());
-                    eventManager.updateEventAvailability(event, () -> {
-                        emailManager.sendConfirmation(authManager.getCurrentUser().getEmail(), event.getName(), reservation.getQuantity());
-                        // Handle success
-                        Log.d("Firestore", "Event updated with internal ID: " + event.getEventId());
-                        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                        alertDialog.setTitle("Reservation Successful");
-                        alertDialog.setMessage("Your reservation has been made.");
-                        alertDialog.show();
-                    }, e -> {
-                        // Handle failure
-                        Log.e("Firestore", "Error updating event", e);
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    // Handle failure
-                    Log.e("Firestore", "Error adding reservation", e);
-                });
+            if (latestEvent == null) {
+                throw new FirebaseFirestoreException("Event not found", FirebaseFirestoreException.Code.NOT_FOUND);
+            }
 
+            if (latestEvent.getAvailableSeats() < reservation.getQuantity()) {
+                throw new FirebaseFirestoreException("Not enough seats available", FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // Update event availability
+            int newAvailableSeats = latestEvent.getAvailableSeats() - reservation.getQuantity();
+            transaction.update(eventRef, "availableSeats", newAvailableSeats);
+
+            // Create reservation
+            DocumentReference reservationRef = db.collection(RESERVATION_COLLECTION).document();
+            reservation.setReservationId(reservationRef.getId());
+            reservation.setReservationDate(new Date());
+            transaction.set(reservationRef, reservation);
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d("Firestore", "Transaction success!");
+            emailManager.sendConfirmation(authManager.getCurrentUser().getEmail(), event.getName(), reservation.getQuantity());
+            new AlertDialog.Builder(context)
+                    .setTitle("Reservation Successful")
+                    .setMessage("Your reservation has been made.")
+                    .setPositiveButton("OK", null)
+                    .show();
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Transaction failure.", e);
+            String message = (e.getMessage() != null && e.getMessage().contains("Not enough seats"))
+                    ? "Sorry, there are not enough seats available for this event."
+                    : "There was an error making your reservation.";
+
+            new AlertDialog.Builder(context)
+                    .setTitle("Reservation Failed")
+                    .setMessage(message)
+                    .setPositiveButton("OK", null)
+                    .show();
+        });
     }
 
     public ListenerRegistration listenToReservations(Consumer<List<Reservation>> callback) {
@@ -143,20 +158,22 @@ public class ReservationManager {
                     @Override
                     public void onSuccess(Void aVoid) {
                         Log.d(TAG, "Transaction success!");
-                        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                        alertDialog.setTitle("Reservation Cancelled");
-                        alertDialog.setMessage("Your reservation has been cancelled.");
-                        alertDialog.show();
+                        new AlertDialog.Builder(context)
+                                .setTitle("Reservation Cancelled")
+                                .setMessage("Your reservation has been cancelled.")
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.w(TAG, "Transaction failure.", e);
-                        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
-                        alertDialog.setTitle("Reservation Cancellation Failed");
-                        alertDialog.setMessage("There was an error cancelling your reservation.");
-                        alertDialog.show();
+                        new AlertDialog.Builder(context)
+                                .setTitle("Reservation Cancellation Failed")
+                                .setMessage("There was an error cancelling your reservation.")
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 });
     }
