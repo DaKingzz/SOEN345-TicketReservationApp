@@ -42,7 +42,7 @@
         <activity android:name=".activity.ReservationListingActivity"
             android:exported="false" />
 
-
+        <activity android:name=".activity.ProfileActivity" />
     </application>
 
 </manifest>
