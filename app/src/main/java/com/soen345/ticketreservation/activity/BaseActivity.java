@@ -36,28 +36,39 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         setupBottomNavigation();
+
+        int selectedItemId = getSelectedBottomNavItem();
+        if (selectedItemId != 0) {
+            bottomNavigationView.setSelectedItemId(selectedItemId);
+        }
     }
+
+    protected abstract int getSelectedBottomNavItem();
 
     private void setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_home) {
-                if (!(this instanceof EventListingActivity)) {
-                    startActivity(new Intent(this, EventListingActivity.class));
-                    finish();
-                }
-                return true;
-            } else if (itemId == R.id.nav_my_tickets) {
-                // TODO: Navigate to My Tickets Activity
-                if (!(this instanceof ReservationListingActivity)) {
-                    startActivity(new Intent(this, ReservationListingActivity.class));
-                    finish();
-                }
-                return true;
-            } else if (itemId == R.id.nav_profile) {
-                // TODO: Navigate to Profile Activity
+
+            if (itemId == getSelectedBottomNavItem()) {
                 return true;
             }
+
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(this, EventListingActivity.class));
+                finish();
+                return true;
+
+            } else if (itemId == R.id.nav_my_tickets) {
+                startActivity(new Intent(this, ReservationListingActivity.class));
+                finish();
+                return true;
+
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                finish();
+                return true;
+            }
+
             return false;
         });
     }

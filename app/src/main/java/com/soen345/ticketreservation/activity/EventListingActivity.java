@@ -343,4 +343,9 @@ public class EventListingActivity extends BaseActivity {
     public boolean hasEnoughAvailableSeats(Event event, int quantity) {
         return event.getAvailableSeats() >= quantity;
     }
+
+    @Override
+    protected int getSelectedBottomNavItem() {
+        return R.id.nav_home;
+    }
 }

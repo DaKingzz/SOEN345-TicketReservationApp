@@ -47,6 +47,11 @@ public class CreateEventActivity extends BaseActivity {
         createTimeListener();
     }
 
+    @Override
+    protected int getSelectedBottomNavItem() {
+        return 0;
+    }
+
     private void setupUI() {
         if (isEditMode) {
             ((EditText) findViewById(R.id.etEventName)).setText(eventToEdit.getName());
@@ -98,11 +103,11 @@ public class CreateEventActivity extends BaseActivity {
                     eventToEdit.setAvailableSeats(capacity);
 
                     EventManager.getInstance().updateEvent(eventToEdit,
-                        () -> {
-                            Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
-                            finish();
-                        },
-                        e -> Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                            () -> {
+                                Toast.makeText(this, "Event updated successfully", Toast.LENGTH_SHORT).show();
+                                finish();
+                            },
+                            e -> Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
                     );
                 } else {
                     Event event = new Event(

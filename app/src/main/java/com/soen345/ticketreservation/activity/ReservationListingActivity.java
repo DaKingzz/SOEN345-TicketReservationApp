@@ -114,4 +114,9 @@ public class ReservationListingActivity extends BaseActivity{
         rvReservations.setLayoutManager(new LinearLayoutManager(this));
         rvReservations.setAdapter(reservationAdapter);
     }
+
+    @Override
+    protected int getSelectedBottomNavItem() {
+        return R.id.nav_my_tickets;
+    }
 }
