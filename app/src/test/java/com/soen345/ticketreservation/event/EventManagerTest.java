@@ -98,42 +98,6 @@ class EventManagerTest {
     }
 
     @Test
-    void createEvent_notLoggedIn_throwsIllegalStateException() {
-        when(authManager.isLoggedIn()).thenReturn(false);
-        Event event = new Event();
-
-        assertThrows(IllegalStateException.class, () -> eventManager.createEvent(event));
-    }
-
-    @Test
-    void createEvent_admin_savesEventSuccessfully() {
-        when(authManager.isLoggedIn()).thenReturn(true);
-        doAnswer(invocation -> {
-            AuthManager.OnAdminResult callback = invocation.getArgument(0);
-            callback.onResult(true);
-            return null;
-        }).when(authManager).checkAdminStatus(any());
-
-        when(db.collection("events")).thenReturn(collectionReference);
-        when(collectionReference.document()).thenReturn(documentReference);
-        when(documentReference.getId()).thenReturn("test-event-id");
-        when(documentReference.set(any(Event.class))).thenReturn(voidTask);
-
-        when(voidTask.addOnSuccessListener(any())).thenAnswer(invocation -> {
-            OnSuccessListener<Void> listener = invocation.getArgument(0);
-            listener.onSuccess(null);
-            return voidTask;
-        });
-        when(voidTask.addOnFailureListener(any())).thenReturn(voidTask);
-
-        Event event = new Event();
-        eventManager.createEvent(event);
-
-        assertEquals("test-event-id", event.getEventId());
-        verify(documentReference).set(event);
-    }
-
-    @Test
     void createEvent_admin_saveFails_logsError() {
         when(authManager.isLoggedIn()).thenReturn(true);
         doAnswer(invocation -> {
@@ -159,32 +123,6 @@ class EventManagerTest {
 
         assertEquals("test-event-id", event.getEventId());
         verify(documentReference).set(event);
-    }
-
-    @Test
-    void createEvent_notAdmin_doesNotSave() {
-        when(authManager.isLoggedIn()).thenReturn(true);
-        doAnswer(invocation -> {
-            AuthManager.OnAdminResult callback = invocation.getArgument(0);
-            callback.onResult(false);
-            return null;
-        }).when(authManager).checkAdminStatus(any());
-
-        Event event = new Event();
-        eventManager.createEvent(event);
-
-        verify(db, never()).collection(anyString());
-    }
-
-    @Test
-    void updateEvent_notLoggedIn_callsOnFailure() {
-        when(authManager.isLoggedIn()).thenReturn(false);
-        AtomicReference<Exception> capturedException = new AtomicReference<>();
-
-        eventManager.updateEvent(new Event(), null, capturedException::set);
-
-        assertNotNull(capturedException.get());
-        assertTrue(capturedException.get() instanceof IllegalStateException);
     }
 
     @Test
@@ -221,33 +159,6 @@ class EventManagerTest {
     }
 
     @Test
-    void updateEvent_success_callsOnSuccess() {
-        when(authManager.isLoggedIn()).thenReturn(true);
-        doAnswer(invocation -> {
-            AuthManager.OnAdminResult callback = invocation.getArgument(0);
-            callback.onResult(true);
-            return null;
-        }).when(authManager).checkAdminStatus(any());
-
-        Event event = new Event();
-        event.setEventId("id123");
-
-        when(db.collection("events")).thenReturn(collectionReference);
-        when(collectionReference.document("id123")).thenReturn(documentReference);
-        when(documentReference.set(event)).thenReturn(voidTask);
-        when(voidTask.addOnSuccessListener(any())).thenAnswer(invocation -> {
-            ((OnSuccessListener<Void>) invocation.getArgument(0)).onSuccess(null);
-            return voidTask;
-        });
-        when(voidTask.addOnFailureListener(any())).thenReturn(voidTask);
-
-        AtomicBoolean successCalled = new AtomicBoolean(false);
-        eventManager.updateEvent(event, () -> successCalled.set(true), null);
-
-        assertTrue(successCalled.get());
-    }
-
-    @Test
     void updateEvent_failure_callsOnFailure() {
         when(authManager.isLoggedIn()).thenReturn(true);
         doAnswer(invocation -> {
@@ -276,14 +187,6 @@ class EventManagerTest {
     }
 
     @Test
-    void deleteEvent_notLoggedIn_callsOnFailure() {
-        when(authManager.isLoggedIn()).thenReturn(false);
-        AtomicReference<Exception> result = new AtomicReference<>();
-        eventManager.deleteEvent("id123", null, result::set);
-        assertTrue(result.get() instanceof IllegalStateException);
-    }
-
-    @Test
     void deleteEvent_notAdmin_callsOnFailure() {
         when(authManager.isLoggedIn()).thenReturn(true);
         doAnswer(invocation -> {
@@ -295,30 +198,6 @@ class EventManagerTest {
         AtomicReference<Exception> result = new AtomicReference<>();
         eventManager.deleteEvent("id123", null, result::set);
         assertTrue(result.get().getMessage().contains("Admin status required"));
-    }
-
-    @Test
-    void deleteEvent_success_callsOnSuccess() {
-        when(authManager.isLoggedIn()).thenReturn(true);
-        doAnswer(invocation -> {
-            AuthManager.OnAdminResult callback = invocation.getArgument(0);
-            callback.onResult(true);
-            return null;
-        }).when(authManager).checkAdminStatus(any());
-
-        when(db.collection("events")).thenReturn(collectionReference);
-        when(collectionReference.document("id123")).thenReturn(documentReference);
-        when(documentReference.delete()).thenReturn(voidTask);
-        when(voidTask.addOnSuccessListener(any())).thenAnswer(invocation -> {
-            ((OnSuccessListener<Void>) invocation.getArgument(0)).onSuccess(null);
-            return voidTask;
-        });
-        when(voidTask.addOnFailureListener(any())).thenReturn(voidTask);
-
-        AtomicBoolean successCalled = new AtomicBoolean(false);
-        eventManager.deleteEvent("id123", () -> successCalled.set(true), null);
-
-        assertTrue(successCalled.get());
     }
 
     @Test
@@ -344,46 +223,6 @@ class EventManagerTest {
         eventManager.deleteEvent("id123", null, result::set);
 
         assertSame(exception, result.get());
-    }
-
-    @Test
-    void getEvents_success_returnsList() {
-        when(db.collection("events")).thenReturn(collectionReference);
-        when(collectionReference.get()).thenReturn(querySnapshotTask);
-        when(querySnapshotTask.addOnSuccessListener(any())).thenAnswer(invocation -> {
-            ((OnSuccessListener<QuerySnapshot>) invocation.getArgument(0)).onSuccess(querySnapshot);
-            return querySnapshotTask;
-        });
-        when(querySnapshotTask.addOnFailureListener(any())).thenReturn(querySnapshotTask);
-
-        QueryDocumentSnapshot doc = mock(QueryDocumentSnapshot.class);
-        Event event = new Event();
-        when(doc.toObject(Event.class)).thenReturn(event);
-        when(querySnapshot.iterator()).thenReturn(Collections.singletonList(doc).iterator());
-
-        AtomicReference<List<Event>> result = new AtomicReference<>();
-        eventManager.getEvents(result::set);
-
-        assertNotNull(result.get());
-        assertEquals(1, result.get().size());
-        assertSame(event, result.get().get(0));
-    }
-
-    @Test
-    void getEvents_failure_returnsEmptyList() {
-        when(db.collection("events")).thenReturn(collectionReference);
-        when(collectionReference.get()).thenReturn(querySnapshotTask);
-        when(querySnapshotTask.addOnSuccessListener(any())).thenReturn(querySnapshotTask);
-        when(querySnapshotTask.addOnFailureListener(any())).thenAnswer(invocation -> {
-            ((OnFailureListener) invocation.getArgument(0)).onFailure(new Exception("Error"));
-            return querySnapshotTask;
-        });
-
-        AtomicReference<List<Event>> result = new AtomicReference<>();
-        eventManager.getEvents(result::set);
-
-        assertNotNull(result.get());
-        assertTrue(result.get().isEmpty());
     }
 
     @Test

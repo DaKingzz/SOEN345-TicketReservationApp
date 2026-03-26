@@ -34,6 +34,11 @@ android {
             returnDefaultValues = true
             all {
                 useJUnitPlatform()
+                testLogging {
+                    events "passed", "skipped", "failed"
+                    showStandardStreams true
+                    exceptionFormat "full"
+                }
             }
         }
     }
