@@ -33,6 +33,7 @@ import com.soen345.ticketreservation.model.Event;
 import com.soen345.ticketreservation.model.EventCategory;
 import com.soen345.ticketreservation.model.OnEventInteractionListener;
 import com.soen345.ticketreservation.model.Reservation;
+import com.soen345.ticketreservation.util.FirestoreCleanupUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -75,6 +76,12 @@ public class EventListingActivity extends BaseActivity {
         etLocationFilter = findViewById(R.id.etLocationFilter);
         btnDateFilter = findViewById(R.id.btnDateFilter);
         btnClearDate = findViewById(R.id.btnClearDate);
+
+        /**
+         * This line of code deletes the generated events for the performance tests
+         * got written to the firestore
+         */
+        //FirestoreCleanupUtil.deletePerfEvents();
 
         setupRecyclerView();
         setupFilterChips();
