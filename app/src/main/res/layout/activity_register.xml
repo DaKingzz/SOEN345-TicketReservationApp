@@ -51,16 +51,6 @@
                 android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- ── Tab switcher: Email | Phone ───────────────────────────────── -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            app:tabMode="fixed"
-            app:tabGravity="fill"
-            app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget" />
-
         <!-- ════════════════════════════════════════════════════════════════
              EMAIL SECTION
              ════════════════════════════════════════════════════════════════ -->
@@ -124,70 +114,6 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-        </LinearLayout>
-
-        <!-- ════════════════════════════════════════════════════════════════
-             PHONE SECTION
-             ════════════════════════════════════════════════════════════════ -->
-        <LinearLayout
-            android:id="@+id/phone_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="16dp"
-            android:visibility="gone">
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/phone_layout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/hint_phone">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/phone_edit_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionDone"
-                    android:inputType="phone"
-                    android:maxLines="1" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- OTP section – hidden until SMS is sent -->
-            <LinearLayout
-                android:id="@+id/otp_section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="16dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/otp_instruction"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/otp_layout"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/hint_otp">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/otp_edit_text"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionDone"
-                        android:inputType="numberPassword"
-                        android:maxLength="6"
-                        android:maxLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
         </LinearLayout>
 
         <!-- ── Progress ──────────────────────────────────────────────────── -->

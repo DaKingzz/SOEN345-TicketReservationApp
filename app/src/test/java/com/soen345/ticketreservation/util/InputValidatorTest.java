@@ -100,29 +100,6 @@ class InputValidatorTest {
     }
 
     @Nested
-    @DisplayName("isValidPhoneNumber")
-    class PhoneTests {
-
-        @ParameterizedTest(name = "\"{0}\" is a valid E.164 number")
-        @ValueSource(strings = {"+15141234567", "+14385550100", "+447911123456", "+33123456789"})
-        void validE164Numbers(String phone) {
-            assertTrue(InputValidator.isValidPhoneNumber(phone));
-        }
-
-        @ParameterizedTest(name = "\"{0}\" is NOT a valid phone number")
-        @ValueSource(strings = {"5141234567", "+1", "abc", "", "+1234567"})
-        void invalidPhoneNumbers(String phone) {
-            assertFalse(InputValidator.isValidPhoneNumber(phone));
-        }
-
-        @Test
-        @DisplayName("returns false for null")
-        void nullPhone_isInvalid() {
-            assertFalse(InputValidator.isValidPhoneNumber(null));
-        }
-    }
-
-    @Nested
     @DisplayName("isValidName")
     class NameTests {
 
@@ -163,38 +140,4 @@ class InputValidatorTest {
         }
     }
 
-    @Nested
-    @DisplayName("isValidOtp")
-    class OtpTests {
-
-        @Test
-        @DisplayName("returns true for 6-digit OTP")
-        void sixDigitOtp_isValid() {
-            assertTrue(InputValidator.isValidOtp("123456"));
-        }
-
-        @Test
-        @DisplayName("returns false for 5-digit OTP")
-        void fiveDigitOtp_isInvalid() {
-            assertFalse(InputValidator.isValidOtp("12345"));
-        }
-
-        @Test
-        @DisplayName("returns false for OTP with letters")
-        void alphanumericOtp_isInvalid() {
-            assertFalse(InputValidator.isValidOtp("12345a"));
-        }
-
-        @Test
-        @DisplayName("returns false for empty string")
-        void emptyOtp_isInvalid() {
-            assertFalse(InputValidator.isValidOtp(""));
-        }
-
-        @Test
-        @DisplayName("returns false for null")
-        void nullOtp_isInvalid() {
-            assertFalse(InputValidator.isValidOtp(null));
-        }
-    }
 }

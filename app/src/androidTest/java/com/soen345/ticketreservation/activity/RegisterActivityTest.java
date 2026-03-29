@@ -10,7 +10,6 @@ import android.widget.Button;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.soen345.ticketreservation.R;
@@ -39,59 +38,11 @@ public class RegisterActivityTest {
     }
 
     @Test
-    public void phoneSectionIsHiddenByDefault() {
-        activityRule.getScenario().onActivity(activity -> {
-            View phoneSection = activity.findViewById(R.id.phone_section);
-            assertEquals(View.GONE, phoneSection.getVisibility());
-        });
-    }
-
-    @Test
     public void registerButtonIsDisplayedByDefault() {
         activityRule.getScenario().onActivity(activity -> {
             Button actionButton = activity.findViewById(R.id.action_button);
             assertEquals(View.VISIBLE, actionButton.getVisibility());
             assertEquals(activity.getString(R.string.btn_register), actionButton.getText().toString());
-        });
-    }
-
-    // ── Tab switching ─────────────────────────────────────────────────────────
-
-    @Test
-    public void switchingToPhoneTabShowsPhoneSectionAndHidesEmailSection() {
-        activityRule.getScenario().onActivity(activity -> {
-            TabLayout tabLayout = activity.findViewById(R.id.tab_layout);
-            tabLayout.selectTab(tabLayout.getTabAt(1)); // Phone tab
-
-            assertEquals(View.VISIBLE, activity.findViewById(R.id.phone_section).getVisibility());
-            assertEquals(View.GONE,    activity.findViewById(R.id.email_section).getVisibility());
-        });
-    }
-
-    @Test
-    public void switchingToPhoneTabChangesButtonLabelToSendOtp() {
-        activityRule.getScenario().onActivity(activity -> {
-            TabLayout tabLayout = activity.findViewById(R.id.tab_layout);
-            tabLayout.selectTab(tabLayout.getTabAt(1)); // Phone tab
-
-            Button actionButton = activity.findViewById(R.id.action_button);
-            assertEquals(activity.getString(R.string.btn_send_otp), actionButton.getText().toString());
-        });
-    }
-
-    @Test
-    public void switchingBackToEmailTabRestoresEmailSectionAndButtonLabel() {
-        activityRule.getScenario().onActivity(activity -> {
-            TabLayout tabLayout = activity.findViewById(R.id.tab_layout);
-            tabLayout.selectTab(tabLayout.getTabAt(1)); // Phone tab
-            tabLayout.selectTab(tabLayout.getTabAt(0)); // Back to Email tab
-
-            assertEquals(View.VISIBLE, activity.findViewById(R.id.email_section).getVisibility());
-            assertEquals(View.GONE,    activity.findViewById(R.id.phone_section).getVisibility());
-            assertEquals(
-                activity.getString(R.string.btn_register),
-                ((Button) activity.findViewById(R.id.action_button)).getText().toString()
-            );
         });
     }
 
@@ -153,42 +104,6 @@ public class RegisterActivityTest {
             TextInputLayout confirmLayout = activity.findViewById(R.id.confirm_password_layout);
             assertNotNull(confirmLayout.getError());
             assertEquals("Passwords do not match", confirmLayout.getError().toString());
-        });
-    }
-
-    // ── Phone form validation ─────────────────────────────────────────────────
-
-    @Test
-    public void submitPhoneFormWithEmptyPhoneNumber_showsPhoneError() {
-        activityRule.getScenario().onActivity(activity -> {
-            TabLayout tabLayout = activity.findViewById(R.id.tab_layout);
-            tabLayout.selectTab(tabLayout.getTabAt(1)); // Phone tab
-
-            ((TextInputEditText) activity.findViewById(R.id.name_edit_text)).setText("Bob");
-            // Leave phone empty
-
-            activity.findViewById(R.id.action_button).performClick();
-
-            TextInputLayout phoneLayout = activity.findViewById(R.id.phone_layout);
-            assertNotNull(phoneLayout.getError());
-            assertEquals("Include country code, e.g. +15141234567", phoneLayout.getError().toString());
-        });
-    }
-
-    @Test
-    public void submitPhoneFormWithInvalidPhoneNumber_showsPhoneError() {
-        activityRule.getScenario().onActivity(activity -> {
-            TabLayout tabLayout = activity.findViewById(R.id.tab_layout);
-            tabLayout.selectTab(tabLayout.getTabAt(1)); // Phone tab
-
-            ((TextInputEditText) activity.findViewById(R.id.name_edit_text)).setText("Bob");
-            ((TextInputEditText) activity.findViewById(R.id.phone_edit_text)).setText("12345");
-
-            activity.findViewById(R.id.action_button).performClick();
-
-            TextInputLayout phoneLayout = activity.findViewById(R.id.phone_layout);
-            assertNotNull(phoneLayout.getError());
-            assertEquals("Include country code, e.g. +15141234567", phoneLayout.getError().toString());
         });
     }
 

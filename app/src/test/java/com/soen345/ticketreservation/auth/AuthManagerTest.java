@@ -20,7 +20,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -50,7 +49,6 @@ class AuthManagerTest {
     @Mock private Task<AuthResult>        authTask;
     @Mock private Task<Void>              voidTask;
     @Mock private Task<DocumentSnapshot>  docTask;
-    @Mock private PhoneAuthCredential     mockCredential;
 
     private AuthManager authManager;
     private MockedStatic<FirebaseAuth>      mockedAuth;
@@ -447,83 +445,4 @@ class AuthManagerTest {
         assertNull(result.get());
     }
 
-    // ── signInWithPhoneCredential ─────────────────────────────────────────────
-
-    @Test
-    void signInWithPhoneCredential_failure_callsOnFailure() {
-        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
-        completeAuthFailure("OTP verification failed");
-
-        AtomicReference<String> err = new AtomicReference<>();
-        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
-            public void onSuccess()           {}
-            public void onFailure(String msg) { err.set(msg); }
-        });
-
-        assertEquals("OTP verification failed", err.get());
-    }
-
-    @Test
-    void signInWithPhoneCredential_authSucceedsButUserNull_callsOnFailure() {
-        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
-        completeAuthSuccess();
-        when(mockAuth.getCurrentUser()).thenReturn(null);
-
-        AtomicReference<String> err = new AtomicReference<>();
-        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
-            public void onSuccess()           {}
-            public void onFailure(String msg) { err.set(msg); }
-        });
-
-        assertNotNull(err.get());
-        assertTrue(err.get().contains("user is null"));
-    }
-
-    @Test
-    void signInWithPhoneCredential_existingUser_callsOnSuccess() {
-        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
-        completeAuthSuccess();
-        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-        when(mockUser.getUid()).thenReturn("uid-phone");
-
-        // checkUserExists → Firestore doc exists
-        stubFirestoreGet("uid-phone");
-        docTaskSuccessSnapshot();
-        when(mockDocSnapshot.exists()).thenReturn(true);
-
-        AtomicBoolean ok = new AtomicBoolean(false);
-        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
-            public void onSuccess()           { ok.set(true); }
-            public void onFailure(String msg) {}
-        });
-
-        assertTrue(ok.get());
-    }
-
-    @Test
-    void signInWithPhoneCredential_newUser_savesToFirestoreAndCallsOnSuccess() {
-        when(mockAuth.signInWithCredential(mockCredential)).thenReturn(authTask);
-        completeAuthSuccess();
-        when(mockAuth.getCurrentUser()).thenReturn(mockUser);
-        when(mockUser.getUid()).thenReturn("uid-new");
-
-        // checkUserExists → doc does NOT exist
-        when(mockDb.collection("users")).thenReturn(mockCollection);
-        when(mockCollection.document("uid-new")).thenReturn(mockDocRef);
-        when(mockDocRef.get()).thenReturn(docTask);
-        docTaskSuccessSnapshot();
-        when(mockDocSnapshot.exists()).thenReturn(false);
-
-        // saveUserToFirestore → success
-        when(mockDocRef.set(any(User.class))).thenReturn(voidTask);
-        firestoreSetSuccess();
-
-        AtomicBoolean ok = new AtomicBoolean(false);
-        authManager.signInWithPhoneCredential(mockCredential, "Dave", "+15141234567", new AuthCallback() {
-            public void onSuccess()           { ok.set(true); }
-            public void onFailure(String msg) {}
-        });
-
-        assertTrue(ok.get());
-    }
 }

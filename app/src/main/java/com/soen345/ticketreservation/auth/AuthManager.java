@@ -1,20 +1,12 @@
 package com.soen345.ticketreservation.auth;
 
-import android.app.Activity;
 import android.util.Log;
-
-import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.PhoneAuthCredential;
-import com.google.firebase.auth.PhoneAuthOptions;
-import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.soen345.ticketreservation.model.User;
-
-import java.util.concurrent.TimeUnit;
 
 public class AuthManager {
 
@@ -104,7 +96,7 @@ public class AuthManager {
     }
 
     public void registerWithEmail(String email, String password, String displayName,
-                                   AuthCallback callback) {
+                                  AuthCallback callback) {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
@@ -123,7 +115,7 @@ public class AuthManager {
                             .build());
 
                     User user = new User(firebaseUser.getUid(), email, null,
-                                        displayName, User.ROLE_CUSTOMER);
+                            displayName, User.ROLE_CUSTOMER);
                     saveUserToFirestore(user, callback);
                 });
     }
@@ -136,57 +128,6 @@ public class AuthManager {
                     } else {
                         callback.onFailure(extractMessage(task.getException(), "Could not send reset email"));
                     }
-                });
-    }
-
-    public void startPhoneVerification(String phoneNumber, Activity activity,
-                                        PhoneAuthProvider.OnVerificationStateChangedCallbacks callbacks) {
-        PhoneAuthOptions options = PhoneAuthOptions.newBuilder(auth)
-                .setPhoneNumber(phoneNumber)
-                .setTimeout(60L, TimeUnit.SECONDS)
-                .setActivity(activity)
-                .setCallbacks(callbacks)
-                .build();
-        PhoneAuthProvider.verifyPhoneNumber(options);
-    }
-
-    public void verifyOtpAndRegister(String verificationId, String otp,
-                                      String displayName, String phoneNumber,
-                                      AuthCallback callback) {
-        PhoneAuthCredential credential = PhoneAuthProvider.getCredential(verificationId, otp);
-        signInWithPhoneCredential(credential, displayName, phoneNumber, callback);
-    }
-
-    public void signInWithPhoneCredential(PhoneAuthCredential credential,
-                                           String displayName, String phoneNumber,
-                                           AuthCallback callback) {
-        auth.signInWithCredential(credential)
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        callback.onFailure(extractMessage(task.getException(), "OTP verification failed"));
-                        return;
-                    }
-
-                    FirebaseUser firebaseUser = auth.getCurrentUser();
-                    if (firebaseUser == null) {
-                        callback.onFailure("Authentication succeeded but user is null");
-                        return;
-                    }
-
-                    firebaseUser.updateProfile(new UserProfileChangeRequest.Builder()
-                            .setDisplayName(displayName)
-                            .build());
-
-                    String uid = firebaseUser.getUid();
-                    checkUserExists(uid, exists -> {
-                        if (exists) {
-                            callback.onSuccess();
-                        } else {
-                            User user = new User(uid, null, phoneNumber,
-                                                 displayName, User.ROLE_CUSTOMER);
-                            saveUserToFirestore(user, callback);
-                        }
-                    });
                 });
     }
 
@@ -212,23 +153,11 @@ public class AuthManager {
                 .addOnFailureListener(e -> callback.onUserLoaded(null));
     }
 
-    private void checkUserExists(String uid, ExistsCallback callback) {
-        db.collection(USERS_COLLECTION)
-                .document(uid)
-                .get()
-                .addOnSuccessListener(doc -> callback.onResult(doc.exists()))
-                .addOnFailureListener(e -> callback.onResult(false));
-    }
-
     private static String extractMessage(Exception e, String fallback) {
         return (e != null && e.getMessage() != null) ? e.getMessage() : fallback;
     }
 
     public interface UserCallback {
         void onUserLoaded(User user);
-    }
-
-    private interface ExistsCallback {
-        void onResult(boolean exists);
     }
 }
