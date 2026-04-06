@@ -13,12 +13,11 @@ An Android application for browsing and reserving event tickets, built as part o
 
 ## Overview
 
-The Ticket Reservation App allows users to register, log in, and browse upcoming events to reserve tickets. Authentication is handled via Firebase, supporting both email/password and phone number (OTP) registration.
+The Ticket Reservation App allows users to register, log in, and browse upcoming events to reserve tickets. Authentication is handled via Firebase.
 
 ## Features
 
 - Email and password registration and login
-- Phone number registration with SMS OTP verification
 - User profiles stored in Firestore
 - Password reset via email
 - Persistent login session
@@ -38,19 +37,37 @@ The Ticket Reservation App allows users to register, log in, and browse upcoming
 
 ### Prerequisites
 
-- Android Studio (Hedgehog or later)
+- Android Studio (Hedgehog or later recommended)
 - Java 17
-- A Firebase project with **Email/Password** and **Phone** authentication enabled
+- A Firebase project with **Email/Password** authentication enabled
 
 ### Setup
 
-1. Clone the repository
-2. Open the project in Android Studio and let it sync
-3. Obtain `google-services.json` from your team's Firebase project (see a teammate — this file is not in the repo)
-4. Place `google-services.json` in the `app/` directory
-5. Run the app on an emulator or physical device
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/DaKingzz/SOEN345-TicketReservationApp.git
+   cd SOEN345-TicketReservationApp
+   ```
+2. Open the project in Android Studio and let Gradle sync complete.
+3. Obtain `google-services.json` from your team's Firebase project (see a teammate — this file is not in the repo) and place it in the `app/` directory.
+4. In the Firebase Console, enable **Email/Password** under Authentication → Sign-in method.
+5. Run the app on an emulator (API 24+) or a physical device.
 
 > `google-services.json` is excluded from version control intentionally. Never commit it.
+
+### Running locally without a device
+
+You can build and test the project from the command line without opening Android Studio:
+
+```bash
+# Sync dependencies and run unit tests
+./gradlew testDebugUnitTest
+
+# Build a debug APK
+./gradlew assembleDebug
+```
+
+The debug APK will be output to `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## CI / GitHub Actions
 
